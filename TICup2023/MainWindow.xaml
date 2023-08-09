@@ -1,0 +1,43 @@
+﻿<hc:GlowWindow x:Class="TICup2023.MainWindow"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+               xmlns:hc="https://handyorg.github.io/handycontrol"
+               xmlns:vm="clr-namespace:TICup2023.ViewModel"
+               xmlns:uc="clr-namespace:TICup2023.UserControl"
+               mc:Ignorable="d"
+               Title="TICup 2023"
+               ShowTitle="False"
+               Style="{StaticResource WindowGlow}"
+               Background="{DynamicResource SecondaryRegionBrush}"
+               ActiveGlowColor="{DynamicResource PrimaryColor}"
+               ResizeMode="CanResizeWithGrip"
+               WindowStartupLocation="CenterScreen"
+               d:DesignHeight="800"
+               d:DesignWidth="1400"
+               FontFamily="Microsoft YaHei"
+               FontWeight="ExtraLight"
+               hc:Empty.ShowEmpty="True"
+               Icon="Resource/Image/icon.ico">
+    <hc:GlowWindow.DataContext>
+        <vm:MainWindowViewModel />
+    </hc:GlowWindow.DataContext>
+    <hc:GlowWindow.NonClientAreaContent>
+        <uc:NonClientAreaContent />
+    </hc:GlowWindow.NonClientAreaContent>
+    <Grid>
+        <StackPanel>
+            <Button Content="ChangeStr"
+                    Style="{StaticResource ButtonPrimary}"
+                    Command="{Binding ChangeStrCommand}" />
+            <Button Content="ChangeTheme"
+                    Command="{Binding ChangeThemeCommand}" />
+            <Button Content="ChangeColor"
+                    Command="{Binding ChangeColorCommand}" />
+            <TextBlock Text="{Binding TestStr}"></TextBlock>
+            <Image Height="200"
+                   Source="{Binding CamImage}"/>
+        </StackPanel>
+    </Grid>
+</hc:GlowWindow>
