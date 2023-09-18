@@ -1,0 +1,63 @@
+﻿<hc:ScrollViewer x:Class="TICup2023.UserControl.SerialContent"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:vm="clr-namespace:TICup2023.ViewModel"
+                 xmlns:hc="https://handyorg.github.io/handycontrol"
+                 mc:Ignorable="d"
+                 d:DesignHeight="800" d:DesignWidth="224"
+                 VerticalScrollBarVisibility="Auto"
+                 IsInertiaEnabled="True">
+    <hc:ScrollViewer.DataContext>
+        <vm:SerialContentViewModel />
+    </hc:ScrollViewer.DataContext>
+    <StackPanel Orientation="Vertical">
+        <Expander Header="串口属性" IsExpanded="True" Margin="10,10,10,10">
+            <Border BorderThickness="1,0,1,1" BorderBrush="{DynamicResource BorderBrush}"
+                    Background="{DynamicResource RegionBrush}" CornerRadius="0,0,4,4">
+                <StackPanel Orientation="Vertical">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="30" />
+                        </Grid.ColumnDefinitions>
+                        <hc:ComboBox Grid.Column="0" ItemsSource="{Binding SerialManager.PortNameList}"
+                                     SelectedItem="{Binding SerialManager.PortName}"
+                                     Margin="10,10,10,10" hc:TitleElement.Title="串口号:"
+                                     hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                                     hc:TitleElement.HorizontalAlignment="Stretch" />
+                        <Button Grid.Column="1" Margin="0,0,10,0" Padding="0" HorizontalAlignment="Center"
+                                hc:IconElement.Geometry="{StaticResource RotateRightGeometry}"
+                                Style="{StaticResource ButtonIcon}"
+                                Command="{Binding UpdatePortNameListCommand}" />
+                    </Grid>
+                    <hc:NumericUpDown Margin="10,0,10,10" Style="{StaticResource NumericUpDownExtend}"
+                                      Value="{Binding SerialManager.BaudRate}"
+                                      hc:TitleElement.Title="波特率:" hc:TitleElement.TitlePlacement="Left"
+                                      hc:TitleElement.TitleWidth="60" />
+                    <hc:NumericUpDown Margin="10,0,10,10" Style="{StaticResource NumericUpDownExtend}"
+                                      Value="{Binding SerialManager.DataBits}"
+                                      hc:TitleElement.Title="数据位:" hc:TitleElement.TitlePlacement="Left"
+                                      hc:TitleElement.TitleWidth="60" />
+                    <hc:ComboBox ItemsSource="{Binding SerialManager.ParityList}"
+                                 SelectedItem="{Binding SerialManager.Parity}"
+                                 Margin="10,0,10,10" hc:TitleElement.Title="校验位:"
+                                 hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                                 hc:TitleElement.HorizontalAlignment="Stretch" />
+                    <hc:ComboBox ItemsSource="{Binding SerialManager.StopBitsList}"
+                                 SelectedItem="{Binding SerialManager.StopBits}"
+                                 Margin="10,0,10,10" hc:TitleElement.Title="停止位:"
+                                 hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                                 hc:TitleElement.HorizontalAlignment="Stretch" />
+                </StackPanel>
+            </Border>
+        </Expander>
+        <Button Content="打开串口" Margin="10,0,10,10" Width="204"
+                Visibility="{Binding SerialManager.SerialPort.IsOpen,Converter={StaticResource Boolean2VisibilityReConverter}}"
+                Command="{Binding OpenPortCommand}" />
+        <Button Content="关闭串口" Margin="10,0,10,10" Style="{StaticResource ButtonSuccess}" Width="204"
+                Visibility="{Binding SerialManager.SerialPort.IsOpen,Converter={StaticResource Boolean2VisibilityConverter}}"
+                Command="{Binding ClosePortCommand}" />
+    </StackPanel>
+</hc:ScrollViewer>

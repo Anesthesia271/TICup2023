@@ -20,6 +20,7 @@
         <PackageReference Include="OpenCvSharp4.Windows" Version="4.8.0.20230708" />
         <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.8.0.20230708" />
         <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+        <PackageReference Include="System.IO.Ports" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -44,8 +45,9 @@
         <Resource Include="Resource\Lang\Lang.en-US.xaml" />
     </ItemGroup>
 
+
     <ItemGroup>
-      <Folder Include="Tool\Convetor\" />
+      <Folder Include="Tool\Converter\" />
     </ItemGroup>
 
 </Project>

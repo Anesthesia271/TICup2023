@@ -26,18 +26,41 @@
     <hc:GlowWindow.NonClientAreaContent>
         <uc:NonClientAreaContent />
     </hc:GlowWindow.NonClientAreaContent>
-    <Grid>
-        <StackPanel>
-            <Button Content="ChangeStr"
-                    Style="{StaticResource ButtonPrimary}"
-                    Command="{Binding ChangeStrCommand}" />
-            <Button Content="ChangeTheme"
-                    Command="{Binding ChangeThemeCommand}" />
-            <Button Content="ChangeColor"
-                    Command="{Binding ChangeColorCommand}" />
-            <TextBlock Text="{Binding TestStr}"></TextBlock>
-            <Image Height="200"
-                   Source="{Binding CamImage}"/>
-        </StackPanel>
-    </Grid>
+    <Border BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource BorderBrush}"
+            Background="{StaticResource CloudDrawingBrush}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="ColumnDefinitionLeft"
+                                  Width="240"
+                                  MinWidth="240"
+                                  MaxWidth="400">
+                </ColumnDefinition>
+                <ColumnDefinition MinWidth="200" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" x:Name="ButtonShiftOut" Width="28" Height="28"
+                    Click="OnLeftMainContentShiftOut"
+                    hc:IconElement.Geometry="{StaticResource LeftGeometry}"
+                    Padding="8,8,0,8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,26,-16,0"
+                    Style="{StaticResource ButtonIconCircular}" />
+            <Button Grid.Column="0" x:Name="ButtonShiftIn" Width="28" Height="28"
+                    Click="OnLeftMainContentShiftIn"
+                    Visibility="Collapsed"
+                    hc:IconElement.Geometry="{StaticResource RightGeometry}"
+                    Padding="8,8,0,8"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Margin="-12,26,0,0"
+                    Style="{StaticResource ButtonIconCircular}" />
+            <uc:MainContent Grid.Column="1" x:Name="MainContent" />
+            <uc:LeftMainContent Grid.Column="0" x:Name="LeftMainContent" Width="224">
+                <UIElement.RenderTransform>
+                    <TranslateTransform />
+                </UIElement.RenderTransform>
+            </uc:LeftMainContent>
+        </Grid>
+    </Border>
 </hc:GlowWindow>
