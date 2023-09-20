@@ -40,4 +40,9 @@ public partial class NonClientAreaContent
     {
         new AboutWindow { Owner = Application.Current.MainWindow }.ShowDialog();
     }
+
+    private void ButtonGitLab_Click(object sender, RoutedEventArgs e)
+    {
+        
+    }
 }
