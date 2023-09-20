@@ -14,6 +14,7 @@
                ActiveGlowColor="{DynamicResource PrimaryColor}"
                ResizeMode="CanResizeWithGrip"
                WindowStartupLocation="CenterScreen"
+               WindowState="Maximized"
                d:DesignHeight="800"
                d:DesignWidth="1400"
                FontFamily="Microsoft YaHei"

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HandyControl.Controls;
@@ -32,12 +33,13 @@ public partial class SerialContentViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void OpenPort()
+    private async Task OpenPortAsync()
     {
         try
         {
+            SerialManager.DataReceived -= TextReceivedDisplay;
             SerialManager.DataReceived += TextReceivedDisplay;
-            SerialManager.OpenPort();
+            await Task.Run(SerialManager.OpenPort);
             OnPropertyChanged(nameof(SerialManager));
             SendStartCommand.NotifyCanExecuteChanged();
             SendEndCommand.NotifyCanExecuteChanged();
@@ -69,58 +71,86 @@ public partial class SerialContentViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(IsPortOpen))]
-    private void SendStart()
+    private async Task SendStartAsync()
     {
-        SerialManager.SendMsgLine("B");
-        if (!SerialSendDisplay) return;
-        if (SerialData == string.Empty)
-            SerialData += "> B\\n";
-        else
-            SerialData += "\n> B\\n";
-    }
-
-    [RelayCommand(CanExecute = nameof(IsPortOpen))]
-    private void SendEnd()
-    {
-        SerialManager.SendMsgLine("E");
-        if (!SerialSendDisplay) return;
-        if (SerialData == string.Empty)
-            SerialData += "> E\\n";
-        else
-            SerialData += "\n> E\\n";
-    }
-
-    [RelayCommand(CanExecute = nameof(IsPortOpen))]
-    private void SendPos()
-    {
-        SerialManager.SendMsgLine(TrainingTargetPos);
-        if (!SerialSendDisplay) return;
-        if (SerialData == string.Empty)
-            SerialData += $"> {TrainingTargetPos}\\n";
-        else
-            SerialData += $"\n> {TrainingTargetPos}\\n";
-    }
-
-    [RelayCommand(CanExecute = nameof(IsPortOpen))]
-    private void SendText()
-    {
-        if (SerialSendNewLine)
+        try
         {
-            SerialManager.SendMsgLine(TextToSend.Replace("\r\n", "\n"));
+            await Task.Run(() => SerialManager.SendMsgLine("B"));
             if (!SerialSendDisplay) return;
             if (SerialData == string.Empty)
-                SerialData += $"> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}\\n";
+                SerialData += "> B\\n";
             else
-                SerialData += $"\n> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}\\n";
+                SerialData += "\n> B\\n";
         }
-        else
+        catch (Exception e)
         {
-            SerialManager.SendMsg(TextToSend.Replace("\r\n", "\n"));
+            Growl.Warning($"发送信息失败，异常信息为：{e.Message}");
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(IsPortOpen))]
+    private async Task SendEndAsync()
+    {
+        try
+        {
+            await Task.Run(() => SerialManager.SendMsgLine("E"));
             if (!SerialSendDisplay) return;
             if (SerialData == string.Empty)
-                SerialData += $"> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}";
+                SerialData += "> E\\n";
             else
-                SerialData += $"\n> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}";
+                SerialData += "\n> E\\n";
+        }
+        catch (Exception e)
+        {
+            Growl.Warning($"发送信息失败，异常信息为：{e.Message}");
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(IsPortOpen))]
+    private async Task SendPosAsync()
+    {
+        try
+        {
+            await Task.Run(() => SerialManager.SendMsgLine(TrainingTargetPos));
+            if (!SerialSendDisplay) return;
+            if (SerialData == string.Empty)
+                SerialData += $"> {TrainingTargetPos}\\n";
+            else
+                SerialData += $"\n> {TrainingTargetPos}\\n";
+        }
+        catch (Exception e)
+        {
+            Growl.Warning($"发送信息失败，异常信息为：{e.Message}");
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(IsPortOpen))]
+    private async Task SendTextAsync()
+    {
+        try
+        {
+            if (SerialSendNewLine)
+            {
+                await Task.Run(() => SerialManager.SendMsgLine(TextToSend.Replace("\r\n", "\n")));
+                if (!SerialSendDisplay) return;
+                if (SerialData == string.Empty)
+                    SerialData += $"> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}\\n";
+                else
+                    SerialData += $"\n> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}\\n";
+            }
+            else
+            {
+                await Task.Run(() => SerialManager.SendMsg(TextToSend.Replace("\r\n", "\n")));
+                if (!SerialSendDisplay) return;
+                if (SerialData == string.Empty)
+                    SerialData += $"> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}";
+                else
+                    SerialData += $"\n> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}";
+            }
+        }
+        catch (Exception e)
+        {
+            Growl.Warning($"发送信息失败，异常信息为：{e.Message}");
         }
     }
 
@@ -132,7 +162,7 @@ public partial class SerialContentViewModel : ObservableObject
 
     private void TextReceivedDisplay(string msg)
     {
-        if (!SerialReceiveForward) return;
+        if (!SerialReceiveForward || msg == string.Empty) return;
         if (SerialData == string.Empty)
             SerialData += $"< {msg.Replace("\r", "\\r").Replace("\n", "\\n")}";
         else

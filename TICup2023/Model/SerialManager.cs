@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO.Ports;
 using TICup2023.Tool.Helper;
 
@@ -15,7 +14,11 @@ public class SerialManager
     public string[] PortNameList { get; private set; } = SerialPort.GetPortNames();
     public List<Parity> ParityList { get; } = EnumHelper<Parity>.ToList();
     public List<StopBits> StopBitsList { get; } = EnumHelper<StopBits>.ToList();
-    public SerialPort SerialPort { get; } = new(" ", 57600, Parity.Odd, 8, StopBits.One);
+    public SerialPort SerialPort { get; } = new(" ", 57600, Parity.Odd, 8, StopBits.One)
+    {
+        WriteTimeout = 1000,
+        ReadTimeout = 1000
+    };
     public DataReceived? DataReceived { get; set; }
 
     public void UpdatePortNameList()

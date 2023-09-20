@@ -55,6 +55,14 @@
                                      Margin="10,0,10,10" hc:TitleElement.Title="停止位:"
                                      hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
                                      hc:TitleElement.HorizontalAlignment="Stretch" />
+                        <hc:NumericUpDown Margin="10,0,10,10" Style="{StaticResource NumericUpDownExtend}"
+                                          Value="{Binding SerialManager.SerialPort.WriteTimeout}"
+                                          hc:TitleElement.Title="发送超时:" hc:TitleElement.TitlePlacement="Left"
+                                          hc:TitleElement.TitleWidth="60" />
+                        <hc:NumericUpDown Margin="10,0,10,10" Style="{StaticResource NumericUpDownExtend}"
+                                          Value="{Binding SerialManager.SerialPort.ReadTimeout}"
+                                          hc:TitleElement.Title="接收超时:" hc:TitleElement.TitlePlacement="Left"
+                                          hc:TitleElement.TitleWidth="60" />
                     </StackPanel>
                 </Border>
             </Expander>
