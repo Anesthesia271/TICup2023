@@ -21,12 +21,7 @@ public class SerialManager
     };
     public DataReceived? DataReceived { get; set; }
 
-    public void UpdatePortNameList()
-    {
-        PortNameList = SerialPort.GetPortNames();
-    }
-
-    public void OpenPort()
+    private SerialManager()
     {
         SerialPort.DataReceived += (sender, _) =>
         {
@@ -34,6 +29,15 @@ public class SerialManager
             var indata = sp.ReadExisting();
             DataReceived?.Invoke(indata);
         };
+    }
+    
+    public void UpdatePortNameList()
+    {
+        PortNameList = SerialPort.GetPortNames();
+    }
+
+    public void OpenPort()
+    {
         SerialPort.Open();
     }
 
