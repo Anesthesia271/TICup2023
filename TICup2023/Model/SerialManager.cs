@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO.Ports;
 using TICup2023.Tool.Helper;
 
 namespace TICup2023.Model;
+
+public delegate void DataReceived(string msg);
 
 public class SerialManager
 {
@@ -10,26 +13,37 @@ public class SerialManager
     public static SerialManager GetInstance() => Instance;
 
     public string[] PortNameList { get; private set; } = SerialPort.GetPortNames();
-    public List<Parity> ParityList { get; set; } = EnumHelper<Parity>.ToList();
-    public List<StopBits> StopBitsList { get; set; } = EnumHelper<StopBits>.ToList();
-    public string PortName { get; set; } = string.Empty;
-    public int BaudRate { get; set; } = 57600;
-    public int DataBits { get; set; } = 8;
-    public Parity Parity { get; set; } = Parity.Odd;
-    public StopBits StopBits { get; set; } = StopBits.One;
-    public SerialPort SerialPort { get; private set; } = new();
-    
+    public List<Parity> ParityList { get; } = EnumHelper<Parity>.ToList();
+    public List<StopBits> StopBitsList { get; } = EnumHelper<StopBits>.ToList();
+    public SerialPort SerialPort { get; } = new(" ", 57600, Parity.Odd, 8, StopBits.One);
+    public DataReceived? DataReceived { get; set; }
+
     public void UpdatePortNameList()
     {
         PortNameList = SerialPort.GetPortNames();
     }
-    
+
     public void OpenPort()
     {
-        SerialPort = new SerialPort(PortName, BaudRate, Parity, DataBits, StopBits);
+        SerialPort.DataReceived += (sender, _) =>
+        {
+            var sp = (SerialPort)sender;
+            var indata = sp.ReadExisting();
+            DataReceived?.Invoke(indata);
+        };
         SerialPort.Open();
     }
-    
+
+    public void SendMsgLine(string msg)
+    {
+        SerialPort.Write($"{msg}\n");
+    }
+
+    public void SendMsg(string msg)
+    {
+        SerialPort.Write(msg);
+    }
+
     public void ClosePort()
     {
         SerialPort.Close();

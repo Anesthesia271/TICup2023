@@ -13,11 +13,9 @@
                 <ResourceDictionary Source="Resource/Style/Brush.xaml" />
                 <ResourceDictionary Source="Resource/Style/Geometry.xaml" />
                 <!-- Theme -->
-                <ResourceDictionary Source="Resource/Style/Theme/BaseLight.xaml" />
+                <ResourceDictionary Source="Resource/Style/Theme/BaseDark.xaml" />
                 <!-- Primary -->
-                <ResourceDictionary Source="Resource/Style/Primary/Primary.xaml" />
-                <!-- Lang -->
-                <ResourceDictionary Source="Resource/Lang/Lang.zh-CN.xaml" />
+                <ResourceDictionary Source="Resource/Style/Primary/Gold.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

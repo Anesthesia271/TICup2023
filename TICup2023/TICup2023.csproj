@@ -15,6 +15,7 @@
     <ItemGroup>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
         <PackageReference Include="HandyControl" Version="3.4.0" />
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
         <PackageReference Include="OpenCvSharp4" Version="4.8.0.20230708" />
         <PackageReference Include="OpenCvSharp4.Extensions" Version="4.8.0.20230708" />
         <PackageReference Include="OpenCvSharp4.Windows" Version="4.8.0.20230708" />
@@ -41,8 +42,6 @@
         <Resource Include="Resource\Image\Flag\cn.png" />
         <Resource Include="Resource\Image\Flag\en.png" />
         <!-- Lang -->
-        <Resource Include="Resource\Lang\Lang.zh-CN.xaml" />
-        <Resource Include="Resource\Lang\Lang.en-US.xaml" />
     </ItemGroup>
 
 
