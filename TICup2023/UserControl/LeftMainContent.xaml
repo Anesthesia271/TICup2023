@@ -5,7 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:hc="https://handyorg.github.io/handycontrol"
         xmlns:uc="clr-namespace:TICup2023.UserControl"
-        xmlns:local="clr-namespace:TICup2023.UserControl"
         mc:Ignorable="d"
         d:DesignHeight="700" d:DesignWidth="240"
         hc:ScrollViewer.IsInertiaEnabled="True"
