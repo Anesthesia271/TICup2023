@@ -10,6 +10,11 @@
         <FileVersion>1.0.0.0</FileVersion>
         <Version>1.0.1</Version>
         <Copyright>Copyright © DEESAST 2023</Copyright>
+        <Authors>DEESAST</Authors>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DebugType>none</DebugType>
     </PropertyGroup>
 
     <ItemGroup>
