@@ -11,12 +11,17 @@ public partial class SerialContentViewModel : ObservableObject
 {
     [ObservableProperty] private SerialManager _serialManager = SerialManager.GetInstance();
 
+    [ObservableProperty] private string[] _lineBreakList = { @"\r\n (CRLF)", @"\r (CR)", @"\n (LF)" };
+    [ObservableProperty] private int _lineBreakSelectedIndex = 2;
+
     [ObservableProperty] private string _trainingTargetPos = "45";
     [ObservableProperty] private string _serialData = string.Empty;
     [ObservableProperty] private string _textToSend = string.Empty;
     [ObservableProperty] private bool _serialReceiveForward = true;
     [ObservableProperty] private bool _serialSendDisplay = true;
     [ObservableProperty] private bool _serialSendNewLine = true;
+
+    private readonly string[] _lineBreaks = { "\r\n", "\r", "\n" };
 
     private bool IsPortOpen() => SerialManager.SerialPort.IsOpen;
 
@@ -75,12 +80,12 @@ public partial class SerialContentViewModel : ObservableObject
     {
         try
         {
-            await Task.Run(() => SerialManager.SendMsgLine("B"));
+            await Task.Run(() => SerialManager.SendMsg("B\n"));
             if (!SerialSendDisplay) return;
             if (SerialData == string.Empty)
-                SerialData += "> B\\n";
+                SerialData += @"> B\n";
             else
-                SerialData += "\n> B\\n";
+                SerialData += @$"{Environment.NewLine}> B\n";
         }
         catch (Exception e)
         {
@@ -93,12 +98,12 @@ public partial class SerialContentViewModel : ObservableObject
     {
         try
         {
-            await Task.Run(() => SerialManager.SendMsgLine("E"));
+            await Task.Run(() => SerialManager.SendMsg("E\n"));
             if (!SerialSendDisplay) return;
             if (SerialData == string.Empty)
-                SerialData += "> E\\n";
+                SerialData += @"> E\n";
             else
-                SerialData += "\n> E\\n";
+                SerialData += @$"{Environment.NewLine}> E\n";
         }
         catch (Exception e)
         {
@@ -111,12 +116,12 @@ public partial class SerialContentViewModel : ObservableObject
     {
         try
         {
-            await Task.Run(() => SerialManager.SendMsgLine(TrainingTargetPos));
+            await Task.Run(() => SerialManager.SendMsg($"{TrainingTargetPos}\n"));
             if (!SerialSendDisplay) return;
             if (SerialData == string.Empty)
-                SerialData += $"> {TrainingTargetPos}\\n";
+                SerialData += @$"> {TrainingTargetPos}\n";
             else
-                SerialData += $"\n> {TrainingTargetPos}\\n";
+                SerialData += @$"{Environment.NewLine}> {TrainingTargetPos}\n";
         }
         catch (Exception e)
         {
@@ -131,21 +136,33 @@ public partial class SerialContentViewModel : ObservableObject
         {
             if (SerialSendNewLine)
             {
-                await Task.Run(() => SerialManager.SendMsgLine(TextToSend.Replace("\r\n", "\n")));
+                var msg = $"{TextToSend.Replace(Environment.NewLine,
+                    _lineBreaks[LineBreakSelectedIndex])}{_lineBreaks[LineBreakSelectedIndex]}";
+                await Task.Run(() =>
+                    SerialManager.SendMsg(msg));
                 if (!SerialSendDisplay) return;
                 if (SerialData == string.Empty)
-                    SerialData += $"> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}\\n";
+                    SerialData += $"> {msg
+                        .Replace("\r", @"\r")
+                        .Replace("\n", @"\n")}";
                 else
-                    SerialData += $"\n> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}\\n";
+                    SerialData += $"{Environment.NewLine}> {msg
+                        .Replace("\r", @"\r")
+                        .Replace("\n", @"\n")}";
             }
             else
             {
-                await Task.Run(() => SerialManager.SendMsg(TextToSend.Replace("\r\n", "\n")));
+                var msg = TextToSend.Replace(Environment.NewLine, _lineBreaks[LineBreakSelectedIndex]);
+                await Task.Run(() => SerialManager.SendMsg(msg));
                 if (!SerialSendDisplay) return;
                 if (SerialData == string.Empty)
-                    SerialData += $"> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}";
+                    SerialData += $"> {msg
+                        .Replace("\r", @"\r")
+                        .Replace("\n", @"\n")}";
                 else
-                    SerialData += $"\n> {TextToSend.Replace("\r\n", "\n").Replace("\n", "\\n")}";
+                    SerialData += $"{Environment.NewLine}> {msg
+                        .Replace("\r", @"\r")
+                        .Replace("\n", @"\n")}";
             }
         }
         catch (Exception e)
@@ -164,8 +181,8 @@ public partial class SerialContentViewModel : ObservableObject
     {
         if (!SerialReceiveForward || msg == string.Empty) return;
         if (SerialData == string.Empty)
-            SerialData += $"< {msg.Replace("\r", "\\r").Replace("\n", "\\n")}";
+            SerialData += $"< {msg.Replace("\r", @"\r").Replace("\n", @"\n")}";
         else
-            SerialData += $"\n< {msg.Replace("\r", "\\r").Replace("\n", "\\n")}";
+            SerialData += $"{Environment.NewLine}< {msg.Replace("\r", @"\r").Replace("\n", @"\n")}";
     }
 }

@@ -117,14 +117,6 @@
                 </b:EventTrigger>
             </b:Interaction.Triggers>
         </TextBox>
-        <!-- <hc:ElementGroup Margin="0,0,0,10"> -->
-        <!--     <TextBox Width="119" Text="{Binding TextToSend}" TextWrapping="Wrap" -->
-        <!--              VerticalScrollBarVisibility="Auto" AcceptsReturn="True" Height="60" /> -->
-        <!--     <hc:ElementGroup Orientation="Vertical" Layout="Stack" Height="60" Margin="5,0,0,0"> -->
-        <!--         <Button Content="发送" Height="30" Command="{Binding SendTextCommand}" /> -->
-        <!--         <Button Content="清空" Height="30" Command="{Binding ClearSerialDataCommand}" /> -->
-        <!--     </hc:ElementGroup> -->
-        <!-- </hc:ElementGroup> -->
         <Grid Margin="0,0,0,5">
             <Grid.RowDefinitions>
                 <RowDefinition /><RowDefinition />
@@ -137,6 +129,11 @@
             <Button Grid.Row="0" Grid.Column="1" Margin="5,5,0,10" Content="发送" Command="{Binding SendTextCommand}" />
             <Button Grid.Row="1" Grid.Column="1" Margin="5,0,0,5" Content="清空" Command="{Binding ClearSerialDataCommand}" />
         </Grid>
+        <hc:ComboBox ItemsSource="{Binding LineBreakList}"
+                     SelectedIndex="{Binding LineBreakSelectedIndex}"
+                     Margin="0,0,0,10" hc:TitleElement.Title="换行符:"
+                     hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                     hc:TitleElement.HorizontalAlignment="Stretch" />
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
