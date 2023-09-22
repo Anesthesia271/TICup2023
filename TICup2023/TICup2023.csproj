@@ -8,7 +8,7 @@
         <ApplicationIcon>Resource\Image\icon.ico</ApplicationIcon>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>
         <FileVersion>1.0.0.0</FileVersion>
-        <Version>1.0.1</Version>
+        <Version>1.0.2</Version>
         <Copyright>Copyright © DEESAST 2023</Copyright>
         <Authors>DEESAST</Authors>
     </PropertyGroup>
