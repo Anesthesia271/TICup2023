@@ -26,6 +26,13 @@
     <StackPanel VerticalAlignment="Stretch" Orientation="Horizontal">
         <Menu Margin="10,0,0,0" Background="Transparent">
             <MenuItem Height="29" Header="代码仓库">
+                <MenuItem Header="GitHub" Width="200" Command="hc:ControlCommands.OpenLink"
+                          CommandParameter="https://github.com/Anesthesia271/TICup2023">
+                    <MenuItem.Icon>
+                        <Path Data="{StaticResource GithubGeometry}" Stretch="Uniform"
+                              Fill="{DynamicResource PrimaryTextBrush}" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="Tsinghua GitLab" Width="200" Command="hc:ControlCommands.OpenLink"
                           CommandParameter="https://git.tsinghua.edu.cn/deesast2023/ticup2023">
                     <MenuItem.Icon>
