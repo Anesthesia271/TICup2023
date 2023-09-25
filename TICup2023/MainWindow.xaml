@@ -6,21 +6,13 @@
                xmlns:hc="https://handyorg.github.io/handycontrol"
                xmlns:vm="clr-namespace:TICup2023.ViewModel"
                xmlns:uc="clr-namespace:TICup2023.UserControl"
-               mc:Ignorable="d"
-               Title="TICup 2023"
-               ShowTitle="False"
+               mc:Ignorable="d" d:DesignHeight="800" d:DesignWidth="1400"
+               Title="TICup 2023" ShowTitle="False" Icon="Resource/Image/icon.ico"
                Style="{StaticResource WindowGlow}"
-               Background="{DynamicResource SecondaryRegionBrush}"
                ActiveGlowColor="{DynamicResource PrimaryColor}"
-               ResizeMode="CanResizeWithGrip"
-               WindowStartupLocation="CenterScreen"
-               WindowState="Maximized"
-               d:DesignHeight="800"
-               d:DesignWidth="1400"
-               FontFamily="Microsoft YaHei"
-               FontWeight="ExtraLight"
-               hc:Empty.ShowEmpty="True"
-               Icon="Resource/Image/icon.ico">
+               Background="{DynamicResource SecondaryRegionBrush}"
+               ResizeMode="CanResizeWithGrip" WindowStartupLocation="CenterScreen" WindowState="Maximized"
+               FontFamily="Microsoft YaHei" FontWeight="ExtraLight" hc:Empty.ShowEmpty="True">
     <hc:GlowWindow.DataContext>
         <vm:MainWindowViewModel />
     </hc:GlowWindow.DataContext>
@@ -33,29 +25,19 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ColumnDefinitionLeft"
-                                  Width="240"
-                                  MinWidth="240"
-                                  MaxWidth="400">
-                </ColumnDefinition>
+                                  Width="240" MinWidth="240" MaxWidth="400" />
                 <ColumnDefinition MinWidth="200" />
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" x:Name="ButtonShiftOut" Width="28" Height="28"
-                    Click="OnLeftMainContentShiftOut"
+            <Button Grid.Column="0" x:Name="ButtonShiftOut" Width="28" Height="28" Margin="0,26,-16,0"
+                    HorizontalAlignment="Right" VerticalAlignment="Top" Padding="8,8,0,8"
                     hc:IconElement.Geometry="{StaticResource LeftGeometry}"
-                    Padding="8,8,0,8"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Margin="0,26,-16,0"
-                    Style="{StaticResource ButtonIconCircular}" />
-            <Button Grid.Column="0" x:Name="ButtonShiftIn" Width="28" Height="28"
-                    Click="OnLeftMainContentShiftIn"
-                    Visibility="Collapsed"
+                    Style="{StaticResource ButtonIconCircular}"
+                    Click="OnLeftMainContentShiftOut" />
+            <Button Grid.Column="0" x:Name="ButtonShiftIn" Width="28" Height="28" Margin="-12,26,0,0"
+                    HorizontalAlignment="Left" VerticalAlignment="Top" Padding="8,8,0,8"
                     hc:IconElement.Geometry="{StaticResource RightGeometry}"
-                    Padding="8,8,0,8"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Top"
-                    Margin="-12,26,0,0"
-                    Style="{StaticResource ButtonIconCircular}" />
+                    Style="{StaticResource ButtonIconCircular}"
+                    Click="OnLeftMainContentShiftIn" Visibility="Collapsed" />
             <uc:MainContent Grid.Column="1" x:Name="MainContent" />
             <uc:LeftMainContent Grid.Column="0" x:Name="LeftMainContent" Width="224">
                 <UIElement.RenderTransform>
