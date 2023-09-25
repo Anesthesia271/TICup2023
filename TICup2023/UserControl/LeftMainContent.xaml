@@ -24,11 +24,15 @@
                        Text="选项" Foreground="{DynamicResource TextIconBrush}" />
         </Border>
         <TabControl Grid.Row="1" Style="{StaticResource TabControlInLine}">
-            <TabItem Header="串口">
-                <uc:SerialContent/>
+            <TabItem Header="比赛">
+                <uc:MatchContent />
             </TabItem>
-            <TabItem Header="比赛"></TabItem>
-            <TabItem Header="视频"></TabItem>
+            <TabItem Header="视频">
+                <uc:CameraContent />
+            </TabItem>
+            <TabItem Header="串口">
+                <uc:SerialContent />
+            </TabItem>
         </TabControl>
         <Border Grid.Row="2" Height="10" CornerRadius="0,0,10,10"
                 Background="{DynamicResource RegionBrush}" />
