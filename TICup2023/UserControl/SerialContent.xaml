@@ -18,23 +18,25 @@
                      Style="{StaticResource ScrollViewerBaseStyle}">
         <StackPanel Orientation="Vertical">
             <Expander Header="串口属性" IsExpanded="True" Margin="10,10,10,10">
-                <Border BorderThickness="1,0,1,1" BorderBrush="{DynamicResource BorderBrush}"
-                        Background="{DynamicResource RegionBrush}" CornerRadius="0,0,4,4">
+                <Border BorderThickness="1,0,1,1" CornerRadius="0,0,4,4"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        Background="{DynamicResource RegionBrush}">
                     <StackPanel Orientation="Vertical">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="30" />
                             </Grid.ColumnDefinitions>
-                            <hc:ComboBox Grid.Column="0" ItemsSource="{Binding SerialManager.PortNameList}"
-                                         SelectedItem="{Binding SerialManager.SerialPort.PortName}"
-                                         Margin="10,10,10,10" hc:TitleElement.Title="串口号:"
-                                         hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
-                                         hc:TitleElement.HorizontalAlignment="Stretch" />
-                            <Button Grid.Column="1" Margin="0,0,10,0" Padding="0" HorizontalAlignment="Center"
+                            <hc:ComboBox Grid.Column="0" Margin="10,10,10,10"
+                                         hc:TitleElement.TitleWidth="60" hc:TitleElement.TitlePlacement="Left"
+                                         hc:TitleElement.Title="串口号:" hc:TitleElement.HorizontalAlignment="Stretch"
+                                         ItemsSource="{Binding SerialManager.PortNameList}"
+                                         SelectedItem="{Binding SerialManager.SerialPort.PortName}" />
+                            <Button Grid.Column="1" Margin="0,0,10,0"
+                                    HorizontalAlignment="Center" Padding="0"
                                     hc:IconElement.Geometry="{StaticResource RotateRightGeometry}"
-                                    Style="{StaticResource ButtonIcon}"
                                     Foreground="{DynamicResource SecondaryTextBrush}"
+                                    Style="{StaticResource ButtonIcon}"
                                     Command="{Binding UpdatePortNameListCommand}" />
                         </Grid>
                         <hc:NumericUpDown Margin="10,0,10,10" Style="{StaticResource NumericUpDownExtend}"
@@ -125,9 +127,11 @@
                 <ColumnDefinition Width="Auto" /><ColumnDefinition />
             </Grid.ColumnDefinitions>
             <TextBox Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Width="152" Text="{Binding TextToSend}"
-                     Margin="0,0,0,0" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" Height="70" />
+                     Margin="0,0,0,0" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AcceptsReturn="True"
+                     Height="70" />
             <Button Grid.Row="0" Grid.Column="1" Margin="5,5,0,10" Content="发送" Command="{Binding SendTextCommand}" />
-            <Button Grid.Row="1" Grid.Column="1" Margin="5,0,0,5" Content="清空" Command="{Binding ClearSerialDataCommand}" />
+            <Button Grid.Row="1" Grid.Column="1" Margin="5,0,0,5" Content="清空"
+                    Command="{Binding ClearSerialDataCommand}" />
         </Grid>
         <hc:ComboBox ItemsSource="{Binding LineBreakList}"
                      SelectedIndex="{Binding LineBreakSelectedIndex}"

@@ -6,17 +6,14 @@
            xmlns:hc="https://handyorg.github.io/handycontrol"
            xmlns:vm="clr-namespace:TICup2023.ViewModel"
            mc:Ignorable="d"
-           Title="{DynamicResource About}"
-           ResizeMode="NoResize"
-           WindowStartupLocation="CenterScreen"
-           FontFamily="Microsoft YaHei"
-           FontWeight="ExtraLight"
-           Height="260"
-           Width="350">
+           Title="{DynamicResource About}" Height="260" Width="350"
+           ResizeMode="NoResize" WindowStartupLocation="CenterScreen"
+           FontFamily="Microsoft YaHei" FontWeight="ExtraLight">
     <hc:Window.DataContext>
         <vm:AboutWindowViewModel />
     </hc:Window.DataContext>
-    <Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderBrush}"
+    <Border BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource BorderBrush}"
             Background="{StaticResource CloudDrawingBrush}">
         <StackPanel>
             <Image Source="{StaticResource DeesastIconGeometry}"
@@ -28,14 +25,16 @@
                 <TextBlock Text="TI CUP 13" FontSize="25" FontFamily="Eras ITC" Foreground="#FFBEAD6D"
                            FontStyle="Normal" FontWeight="Bold" VerticalAlignment="Center" />
             </StackPanel>
-            <TextBlock HorizontalAlignment="Center" FontSize="12" Margin="0,5,0,0"
-                       FontStretch="ExtraCondensed" Foreground="#FFBEAD6D"
+            <TextBlock HorizontalAlignment="Center" Margin="0,5,0,0"
+                       FontSize="12" FontStretch="ExtraCondensed" Foreground="#FFBEAD6D"
                        Text="{Binding ProductVersion}" />
-            <TextBlock HorizontalAlignment="Center" FontSize="12" Margin="0,5,0,0"
-                       FontStretch="ExtraCondensed" Foreground="{DynamicResource SecondaryTextBrush}"
+            <TextBlock HorizontalAlignment="Center" Margin="0,5,0,0"
+                       FontSize="12" FontStretch="ExtraCondensed"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="Special thanks to HandyControl!" />
-            <TextBlock HorizontalAlignment="Center" FontSize="12" Margin="0,10,0,0"
-                       FontStretch="ExtraCondensed" Foreground="{DynamicResource SecondaryTextBrush}"
+            <TextBlock HorizontalAlignment="Center" Margin="0,10,0,0"
+                       FontSize="12" FontStretch="ExtraCondensed"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="{Binding Copyright}" />
         </StackPanel>
     </Border>
