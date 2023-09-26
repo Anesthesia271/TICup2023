@@ -41,11 +41,6 @@ public class SerialManager
         SerialPort.Open();
     }
 
-    public void SendMsgLine(string msg)
-    {
-        SerialPort.Write($"{msg}\n");
-    }
-
     public void SendMsg(string msg)
     {
         SerialPort.Write(msg);
