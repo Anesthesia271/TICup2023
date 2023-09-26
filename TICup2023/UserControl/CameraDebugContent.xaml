@@ -1,0 +1,16 @@
+<Grid x:Class="TICup2023.UserControl.CameraDebugContent"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:hc="https://handyorg.github.io/handycontrol"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:vm="clr-namespace:TICup2023.ViewModel" d:DesignHeight="1000"
+      d:DesignWidth="1500" mc:Ignorable="d">
+    <Grid.DataContext>
+        <vm:CameraDebugContentViewModel />
+    </Grid.DataContext>
+    <StackPanel>
+        <Image Width="960" Height="540" Source="{Binding CameraManager.CurrentFrame}" />
+        <Button Command="{Binding UpdateCommand}" />
+    </StackPanel>
+</Grid>
