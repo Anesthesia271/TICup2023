@@ -14,21 +14,26 @@
         Effect="{StaticResource EffectShadow4}">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="10" />
         </Grid.RowDefinitions>
-        <Border Grid.Row="0" Height="30" CornerRadius="10,10,0,0"
-                Background="{DynamicResource PrimaryBrush}">
-            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Text="选项" Foreground="{DynamicResource TextIconBrush}" />
+        <Border Grid.Row="0" Height="32" CornerRadius="10,10,0,0"
+                Background="{DynamicResource PrimaryBrush}"
+                Style="{StaticResource BorderClip}">
+            <hc:SimplePanel>
+                <hc:Watermark Mark="选项" MarkMargin="3,0" FontSize="20" FontWeight="Bold"
+                              MarkBrush="#0F000000" />
+                <TextBlock Style="{StaticResource TextBlockDefault}" Text="选项"
+                           Foreground="{DynamicResource TextIconBrush}" />
+            </hc:SimplePanel>
         </Border>
         <TabControl Grid.Row="1" Style="{StaticResource TabControlInLine}">
-            <TabItem Header="比赛">
-                <uc:MatchContent />
-            </TabItem>
             <TabItem Header="视频">
                 <uc:CameraContent />
+            </TabItem>
+            <TabItem Header="比赛">
+                <uc:MatchContent />
             </TabItem>
             <TabItem Header="串口">
                 <uc:SerialContent />
