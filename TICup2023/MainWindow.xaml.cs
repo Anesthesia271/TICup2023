@@ -5,7 +5,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using HandyControl.Tools;
 using HandyControl.Tools.Extension;
-using TICup2023.Tool;
+using TICup2023.UserControl;
 
 namespace TICup2023;
 
@@ -16,6 +16,7 @@ public partial class MainWindow
     public MainWindow()
     {
         InitializeComponent();
+        NonClientAreaContent = new NonClientAreaContent();
     }
 
     private void OnLeftMainContentShiftOut(object sender, RoutedEventArgs e)

@@ -16,9 +16,6 @@
     <hc:GlowWindow.DataContext>
         <vm:MainWindowViewModel />
     </hc:GlowWindow.DataContext>
-    <hc:GlowWindow.NonClientAreaContent>
-        <uc:NonClientAreaContent />
-    </hc:GlowWindow.NonClientAreaContent>
     <Border BorderThickness="0,1,0,0"
             BorderBrush="{DynamicResource BorderBrush}"
             Background="{StaticResource CloudDrawingBrush}">
