@@ -28,21 +28,8 @@ public partial class NonClientAreaContent
         ((App)Application.Current).UpdateResourceDictionary(resStr, 5);
     }
 
-    private void ButtonLang_OnClick(object sender, RoutedEventArgs e)
-    {
-        if (e.OriginalSource is not Button { Tag: string langName }) return;
-        PopupConfig.IsOpen = false;
-        var resStr = $"pack://application:,,,/Resource/Lang/Lang.{langName}.xaml";
-        ((App)Application.Current).UpdateResourceDictionary(resStr, 7);
-    }
-
     private void ButtonAbout_OnClick(object sender, RoutedEventArgs e)
     {
         new AboutWindow { Owner = Application.Current.MainWindow }.ShowDialog();
-    }
-
-    private void ButtonGitLab_Click(object sender, RoutedEventArgs e)
-    {
-        
     }
 }
