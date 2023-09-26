@@ -4,12 +4,34 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:hc="https://handyorg.github.io/handycontrol"
-        mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
-        CornerRadius="10"
-        Margin="16,16,16,16"
+        xmlns:vm="clr-namespace:TICup2023.ViewModel"
+        mc:Ignorable="d" d:DesignHeight="1000" d:DesignWidth="1500"
+        CornerRadius="10" Margin="16"
         Background="{DynamicResource RegionBrush}"
         Effect="{StaticResource EffectShadow4}">
+    <Border.DataContext>
+        <vm:MainContentViewModel />
+    </Border.DataContext>
     <Grid>
-
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Height="32" CornerRadius="10,10,0,0"
+                Background="{DynamicResource TitleBrush}"
+                Style="{StaticResource BorderClip}">
+            <hc:SimplePanel>
+                <hc:Watermark Mark="{Binding ContentTitle}" MarkMargin="3,0" FontSize="20" FontWeight="Bold"
+                              MarkBrush="#0F000000" />
+                <TextBlock Style="{StaticResource TextBlockDefault}" Text="{Binding ContentTitle}"
+                           Foreground="{DynamicResource TextIconBrush}" />
+                <Button Height="26" Width="30" Margin="0,0,6,0" Padding="5"
+                        Foreground="{DynamicResource TextIconBrush}"
+                        Style="{StaticResource ButtonIcon}" HorizontalAlignment="Right"
+                        hc:IconElement.Geometry="{StaticResource DocumentGeometry}"
+                        Command="{Binding SwitchCommand}" />
+            </hc:SimplePanel>
+        </Border>
+        <ContentPresenter Grid.Row="1" Margin="10,0,10,10" Content="{Binding SubContent}" />
     </Grid>
 </Border>
