@@ -121,10 +121,12 @@
         </TextBox>
         <Grid Margin="0,0,0,5">
             <Grid.RowDefinitions>
-                <RowDefinition /><RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" /><ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <TextBox Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Width="152" Text="{Binding TextToSend}"
                      Margin="0,0,0,0" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AcceptsReturn="True"
