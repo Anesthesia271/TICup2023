@@ -2,9 +2,39 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:hc="https://handyorg.github.io/handycontrol"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
-
-    </Grid>
+      xmlns:vm="clr-namespace:TICup2023.ViewModel" d:DesignHeight="800"
+      d:DesignWidth="224" mc:Ignorable="d">
+    <Grid.DataContext>
+        <vm:CameraContentViewModel />
+    </Grid.DataContext>
+    <StackPanel Orientation="Vertical">
+        <Expander Margin="10,10,10,10" Header="摄像头属性" IsExpanded="True">
+            <Border Background="{DynamicResource RegionBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}"
+                    BorderThickness="1,0,1,1" CornerRadius="0,0,4,4">
+                <StackPanel Orientation="Vertical">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="30" />
+                        </Grid.ColumnDefinitions>
+                        <hc:ComboBox Grid.Column="0" Margin="10,10,10,10"
+                                     hc:TitleElement.HorizontalAlignment="Stretch" hc:TitleElement.Title="设备名称:"
+                                     hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                                     ItemsSource="{Binding CameraManager.CameraDevices}"
+                                     SelectedIndex="{Binding CameraManager.SelectedCameraIndex}" />
+                        <Button Grid.Column="1" Margin="0,0,10,0" Padding="0"
+                                HorizontalAlignment="Center"
+                                hc:IconElement.Geometry="{StaticResource RotateRightGeometry}"
+                                Command="{Binding UpdateCameraDevicesCommand}"
+                                Foreground="{DynamicResource SecondaryTextBrush}"
+                                Style="{StaticResource ButtonIcon}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Expander>
+    </StackPanel>
+    <Button Command="{Binding OpenCameraCommand}" Content="打开摄像头" />
 </Grid>
