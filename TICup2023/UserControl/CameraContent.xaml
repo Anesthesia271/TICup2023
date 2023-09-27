@@ -32,9 +32,89 @@
                                 Foreground="{DynamicResource SecondaryTextBrush}"
                                 Style="{StaticResource ButtonIcon}" />
                     </Grid>
+                    <hc:NumericUpDown Margin="10,0,10,10" hc:TitleElement.Title="色调下限:"
+                                      hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                                      Style="{StaticResource NumericUpDownExtend}"
+                                      Value="{Binding ElementName=RangeSliderH, Path=ValueStart}" />
+                    <hc:NumericUpDown Margin="10,0,10,10" hc:TitleElement.Title="色调上限:"
+                                      hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                                      Style="{StaticResource NumericUpDownExtend}"
+                                      Value="{Binding ElementName=RangeSliderH, Path=ValueEnd}" />
+                    <hc:NumericUpDown Margin="10,0,10,10" hc:TitleElement.Title="饱和下限:"
+                                      hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                                      Style="{StaticResource NumericUpDownExtend}"
+                                      Value="{Binding ElementName=RangeSliderS, Path=ValueStart}" />
+                    <hc:NumericUpDown Margin="10,0,10,10" hc:TitleElement.Title="饱和上限:"
+                                      hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                                      Style="{StaticResource NumericUpDownExtend}"
+                                      Value="{Binding ElementName=RangeSliderS, Path=ValueEnd}" />
+                    <hc:NumericUpDown Margin="10,0,10,10" hc:TitleElement.Title="明度下限:"
+                                      hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                                      Style="{StaticResource NumericUpDownExtend}"
+                                      Value="{Binding ElementName=RangeSliderV, Path=ValueStart}" />
+                    <hc:NumericUpDown Margin="10,0,10,10" hc:TitleElement.Title="明度上限:"
+                                      hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                                      Style="{StaticResource NumericUpDownExtend}"
+                                      Value="{Binding ElementName=RangeSliderV, Path=ValueEnd}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Width="9" Margin="10,1,0,10"
+                                   Text="H" />
+                        <hc:RangeSlider x:Name="RangeSliderH" Grid.Column="1" Margin="10,0,10,10"
+                                        hc:TipElement.Placement="Top" hc:TipElement.StringFormat="#0"
+                                        hc:TipElement.Visibility="Visible" IsSnapToTickEnabled="True" LargeChange="1"
+                                        Maximum="255" Minimum="0" SmallChange="1"
+                                        TickFrequency="1"
+                                        ValueEnd="{Binding CameraManager.MaxH}"
+                                        ValueStart="{Binding CameraManager.MinH}" />
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Width="9" Margin="10,1,0,10"
+                                   Padding="1,0,0,0" Text="S" />
+                        <hc:RangeSlider x:Name="RangeSliderS" Grid.Column="1" Margin="10,0,10,10"
+                                        hc:TipElement.Placement="Top" hc:TipElement.StringFormat="#0"
+                                        hc:TipElement.Visibility="Visible" IsSnapToTickEnabled="True" LargeChange="1"
+                                        Maximum="255" Minimum="0" SmallChange="1"
+                                        TickFrequency="1"
+                                        ValueEnd="{Binding CameraManager.MaxS}"
+                                        ValueStart="{Binding CameraManager.MinS}" />
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Width="9" Margin="10,1,0,10"
+                                   Text="V" />
+                        <hc:RangeSlider x:Name="RangeSliderV" Grid.Column="1" Margin="10,0,10,10"
+                                        hc:TipElement.Placement="Top" hc:TipElement.StringFormat="#0"
+                                        hc:TipElement.Visibility="Visible" IsSnapToTickEnabled="True" LargeChange="1"
+                                        Maximum="255" Minimum="0" SmallChange="1"
+                                        TickFrequency="1"
+                                        ValueEnd="{Binding CameraManager.MaxV}"
+                                        ValueStart="{Binding CameraManager.MinV}" />
+                    </Grid>
                 </StackPanel>
             </Border>
         </Expander>
+        <ToggleButton Width="204" Margin="10,0,10,10"
+                      Command="{Binding OpenCameraCommand}"
+                      Content="打开摄像头"
+                      IsChecked="{Binding IsCameraStateChanging}"
+                      Style="{StaticResource ToggleButtonLoading}"
+                      Visibility="{Binding CameraManager.IsCameraOpened, Converter={StaticResource Boolean2VisibilityReConverter}}" />
+        <ToggleButton Width="204" Margin="10,0,10,10"
+                      Command="{Binding CloseCameraCommand}"
+                      Content="关闭摄像头"
+                      IsChecked="{Binding IsCameraStateChanging}"
+                      Style="{StaticResource ToggleButtonLoadingSuccess}"
+                      Visibility="{Binding CameraManager.IsCameraOpened, Converter={StaticResource Boolean2VisibilityConverter}}" />
     </StackPanel>
-    <Button Command="{Binding OpenCameraCommand}" Content="打开摄像头" />
 </Grid>
