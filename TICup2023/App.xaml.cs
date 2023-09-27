@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using NLog;
 using NLog.Config;
+using TICup2023.Model;
 
 namespace TICup2023;
 
@@ -24,6 +25,12 @@ public partial class App
         InitializeNLog();
         RegisterEvents();
         base.OnStartup(e);
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        base.OnExit(e);
+        CameraManager.GetInstance().CloseCamera();
     }
 
     private static void InitializeNLog()
