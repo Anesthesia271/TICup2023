@@ -20,6 +20,7 @@ public partial class SerialContentViewModel : ObservableObject
     [ObservableProperty] private bool _serialReceiveForward = true;
     [ObservableProperty] private bool _serialSendDisplay = true;
     [ObservableProperty] private bool _serialSendNewLine = true;
+    [ObservableProperty] private bool _isOpening;
 
     private readonly string[] _lineBreaks = { "\r\n", "\r", "\n" };
 
@@ -50,10 +51,12 @@ public partial class SerialContentViewModel : ObservableObject
             SendEndCommand.NotifyCanExecuteChanged();
             SendPosCommand.NotifyCanExecuteChanged();
             SendTextCommand.NotifyCanExecuteChanged();
+            IsOpening = false;
         }
         catch (Exception e)
         {
             Growl.Warning($"打开串口失败，异常信息为：{e.Message}");
+            IsOpening = false;
         }
     }
 
