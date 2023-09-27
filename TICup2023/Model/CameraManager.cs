@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Management;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using OpenCvSharp;
@@ -21,16 +23,21 @@ public class CameraManager
 
     public List<string> CameraDevices { get; } = new();
     public int SelectedCameraIndex { get; set; }
+    public bool IsCameraOpened { get; set; }
 
-    private readonly Thread _cameraThread;
+
+    private CancellationTokenSource _tokenSource = new();
+    private CancellationToken _token;
+
     private FrameSource _frameSource = new();
     public BitmapSource? CurrentFrame { get; private set; }
 
-    public int MaxHue { get; set; }
-    public int MinHue { get; set; }
-    public int MinSaturation { get; set; }
-    public int MaxLightness { get; set; }
-    public int MinLightness { get; set; }
+    public double MinH { get; set; } = 35;
+    public double MaxH { get; set; } = 77;
+    public double MinS { get; set; } = 43;
+    public double MaxS { get; set; } = 255;
+    public double MinV { get; set; } = 46;
+    public double MaxV { get; set; } = 255;
     public int MinArea { get; set; }
     public int GridCount { get; set; }
     public bool ShowGrid { get; set; }
@@ -42,8 +49,6 @@ public class CameraManager
     /// </summary>
     private CameraManager()
     {
-        _cameraThread = new Thread(UpdateFrame);
-
         var searcher = new ManagementObjectSearcher(
             "SELECT * FROM Win32_PnPEntity WHERE (PNPClass = 'Image' OR PNPClass = 'Camera')");
         foreach (var device in searcher.Get())
@@ -74,20 +79,35 @@ public class CameraManager
 
     public void OpenCamera()
     {
-        _frameSource = Cv2.CreateFrameSource_Camera(SelectedCameraIndex);
-        _cameraThread.Start();
+        if (CameraDevices.Count == 0)
+            throw new Exception("当前设备无可用的摄像头");
+        _tokenSource = new CancellationTokenSource();
+        _token = _tokenSource.Token;
+        _frameSource = Cv2.CreateFrameSource_Camera(SelectedCameraIndex + 700);
+        IsCameraOpened = true;
+        Task.Run(UpdateFrame, _token);
+    }
+
+    public void CloseCamera()
+    {
+        _tokenSource.Cancel();
+        // _frameSource.Reset();
+        _frameSource.Dispose();
+        IsCameraOpened = false;
     }
 
     private void UpdateFrame()
     {
         Mat src = new();
-        while (true)
+        while (!_token.IsCancellationRequested)
         {
             _frameSource.NextFrame(src);
+            var frame = src.Flip(FlipMode.Y);
+            var img = ShowHsvProcess(frame, MinH, MaxH, MinS, MaxS, MinV, MaxV);
             // TODO: 处理图像
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher.Invoke(() =>
             {
-                CurrentFrame = src.ToBitmapSource();
+                CurrentFrame = img.ToBitmapSource();
                 FrameUpdated?.Invoke();
             });
         }
@@ -103,5 +123,35 @@ public class CameraManager
     public void SetGrid(Point leftTop, Point leftBottom, Point rightTop, Point rightBottom)
     {
         throw new NotImplementedException();
+    }
+
+    private static Mat ShowHsvProcess(Mat src, double hMin, double hMax, double sMin, double sMax, double vMin, double vMax)
+    {
+        var hsv = new Mat();
+        Cv2.CvtColor(src, hsv, ColorConversionCodes.BGR2HSV); //转化为HSV
+
+        var dst = new Mat();
+        var scL = new Scalar(hMin, sMin, vMin);
+        var scH = new Scalar(hMax, sMax, vMax);
+        Cv2.InRange(hsv, scL, scH, dst); //获取HSV处理图片
+        var kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new OpenCvSharp.Size(20, 20),
+            new Point(-1, -1));
+        Cv2.Threshold(dst, dst, 0, 255, ThresholdTypes.Binary); //二值化
+        Cv2.Dilate(dst, dst, kernel); //膨胀
+        Cv2.Erode(dst, dst, kernel); //腐蚀
+        Cv2.FindContours(dst, out var contours, out _, RetrievalModes.CComp,
+            ContourApproximationModes.ApproxSimple);
+        
+        if (contours.Length <= 0) return src;
+        
+        var boxes = contours.Select(Cv2.BoundingRect).Where(w => w is { Height: >= 10, Width: > 10 });
+        var imgTar = src.Clone();
+        foreach (var rect in boxes)
+        {
+            Cv2.Rectangle(imgTar, new Point(rect.X, rect.Y),
+                new Point(rect.X + rect.Width, rect.Y + rect.Height), new Scalar(0, 0, 255));
+        }
+        return imgTar;
+
     }
 }
