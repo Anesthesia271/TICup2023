@@ -12,9 +12,4 @@ public partial class CameraDebugContentViewModel : ObservableObject
     {
         CameraManager.FrameUpdated += () => OnPropertyChanged(nameof(CameraManager));
     }
-
-    [RelayCommand]
-    private void Update()
-    {
-    }
 }

@@ -11,6 +11,5 @@
     </Grid.DataContext>
     <StackPanel>
         <Image Width="960" Height="540" Source="{Binding CameraManager.CurrentFrame}" />
-        <Button Command="{Binding UpdateCommand}" />
     </StackPanel>
 </Grid>
