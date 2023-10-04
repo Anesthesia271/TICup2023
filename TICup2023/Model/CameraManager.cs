@@ -115,7 +115,6 @@ public class CameraManager
     {
         if (eventArgs.Frame.Clone() is not Bitmap bitmap) return;
         var frame = await FrameTransform(bitmap);
-        // TODO
         Application.Current?.Dispatcher.Invoke(() =>
         {
             CurrentFrame = frame.ToBitmapSource();
