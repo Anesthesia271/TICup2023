@@ -1,10 +1,29 @@
 ﻿<Grid x:Class="TICup2023.UserControl.MatchContent"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:converter="clr-namespace:TICup2023.Tool.Converter"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:hc="https://handyorg.github.io/handycontrol"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
-
-    </Grid>
+      xmlns:vm="clr-namespace:TICup2023.ViewModel" d:DesignHeight="800"
+      d:DesignWidth="224" mc:Ignorable="d">
+    <Grid.DataContext>
+        <vm:MatchContentViewModel />
+    </Grid.DataContext>
+    <Grid.Resources>
+        <converter:MultiIntConverter x:Key="MultiIntConverter" />
+    </Grid.Resources>
+    <StackPanel>
+        <hc:ComboBox Margin="10,0,10,10" hc:TitleElement.HorizontalAlignment="Stretch"
+                     hc:TitleElement.Title="地图边长:" hc:TitleElement.TitlePlacement="Left"
+                     hc:TitleElement.TitleWidth="60"
+                     ItemsSource="{Binding MatchManager.MapSizeList, Mode=OneWay}">
+            <hc:ComboBox.SelectedItem>
+                <MultiBinding Converter="{StaticResource MultiIntConverter}">
+                    <Binding Path="MatchManager.MapSize" />
+                    <Binding Path="CameraManager.GridCount" />
+                </MultiBinding>
+            </hc:ComboBox.SelectedItem>
+        </hc:ComboBox>
+    </StackPanel>
 </Grid>
