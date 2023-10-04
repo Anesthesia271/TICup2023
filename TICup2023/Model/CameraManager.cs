@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using AForge.Video;
@@ -42,6 +44,9 @@ public class CameraManager
     public int GridCount { get; set; } = 8;
     public bool ShowGrid { get; set; } = true;
 
+    public float CurrentPointX { get; set; } = -1;
+    public float CurrentPointY { get; set; } = -1;
+
     public FrameUpdated? FrameUpdated { get; set; }
 
     private CameraManager()
@@ -80,7 +85,7 @@ public class CameraManager
             LocalWebCam.VideoResolution = LocalWebCam.VideoCapabilities[SelectedResolutionIndex];
         }
 
-        LocalWebCam.NewFrame += NewFrame;
+        LocalWebCam.NewFrame += NewFrameAsync;
         LocalWebCam.Start();
         IsCameraOpened = true;
     }
@@ -106,9 +111,11 @@ public class CameraManager
         }
     }
 
-    private void NewFrame(object sender, NewFrameEventArgs eventArgs)
+    private async void NewFrameAsync(object sender, NewFrameEventArgs eventArgs)
     {
-        var frame = FrameTransform(eventArgs.Frame.ToMat());
+        if (eventArgs.Frame.Clone() is not Bitmap bitmap) return;
+        var frame = await FrameTransform(bitmap);
+        // TODO
         Application.Current?.Dispatcher.Invoke(() =>
         {
             CurrentFrame = frame.ToBitmapSource();
@@ -116,14 +123,14 @@ public class CameraManager
         });
     }
 
-    private Mat FrameTransform(Mat src)
-    {
-        if (FlipX) Cv2.Flip(src, src, FlipMode.X);
-
-        if (FlipY) Cv2.Flip(src, src, FlipMode.Y);
-
-        return ShowHsvProcess(src);
-    }
+    private Task<Mat> FrameTransform(Bitmap bitmap) =>
+        Task.Run(() =>
+        {
+            var src = bitmap.ToMat();
+            if (FlipX) Cv2.Flip(src, src, FlipMode.X);
+            if (FlipY) Cv2.Flip(src, src, FlipMode.Y);
+            return ShowHsvProcess(src);
+        });
 
     private Mat ShowHsvProcess(Mat src)
     {
@@ -142,52 +149,78 @@ public class CameraManager
         Cv2.FindContours(dst, out var contours, out _, RetrievalModes.CComp,
             ContourApproximationModes.ApproxSimple);
 
+        var image = src.Clone();
+
         foreach (var boundary in Boundaries)
         {
             if (boundary is not { X: >= 0, Y: >= 0 }) continue;
             var x = boundary.X;
-            var y = LocalWebCam.VideoResolution.FrameSize.Height - boundary.Y;
-            // Cv2.Circle(src, new Point(x,y), 5,
-            //     new Scalar(212, 188, 0), -1);
-            Cv2.Line(src, new Point(x - 10, y -10), new Point(x + 10, y + 10),
-                new Scalar(212, 188, 0));
-            Cv2.Line(src, new Point(x - 10, y + 10), new Point(x + 10, y - 10),
-                new Scalar(212, 188, 0));
+            var y = boundary.Y;
+            Cv2.Line(image, new Point(x - 10, y - 10), new Point(x + 10, y + 10),
+                new Scalar(243, 108, 50));
+            Cv2.Line(image, new Point(x - 10, y + 10), new Point(x + 10, y - 10),
+                new Scalar(243, 108, 50));
         }
 
         if (ShowGrid && IsBoundariesSet)
         {
-            var height = LocalWebCam.VideoResolution.FrameSize.Height;
-            for (var i = 0; i < GridCount + 1; i++)
+            var perspectiveMatrix = Cv2.GetPerspectiveTransform(new[]
             {
-                Cv2.Line(src, 
-                    new Point(Boundaries[0].X + (Boundaries[1].X - Boundaries[0].X) / GridCount * i, 
-                        height - (Boundaries[0].Y + (Boundaries[1].Y - Boundaries[0].Y) / GridCount * i)),
-                    new Point(Boundaries[3].X + (Boundaries[2].X - Boundaries[3].X) / GridCount * i, 
-                        height - (Boundaries[3].Y + (Boundaries[2].Y - Boundaries[3].Y) / GridCount * i)),
-                    new Scalar(212, 188, 0));
-                Cv2.Line(src,
-                    new Point(Boundaries[0].X + (Boundaries[3].X - Boundaries[0].X) / GridCount * i,
-                        height - (Boundaries[0].Y + (Boundaries[3].Y - Boundaries[0].Y) / GridCount * i)),
-                    new Point(Boundaries[1].X + (Boundaries[2].X - Boundaries[1].X) / GridCount * i,
-                        height - (Boundaries[1].Y + (Boundaries[2].Y - Boundaries[1].Y) / GridCount * i)),
-                    new Scalar(212, 188, 0));
+                new Point2f(0, 0),
+                new Point2f(GridCount - 1, 0),
+                new Point2f(GridCount - 1, GridCount - 1),
+                new Point2f(0, GridCount - 1)
+            }, Boundaries);
+            for (var i = 0; i < GridCount; i++)
+            {
+                var srcPoint = new Point2f[]
+                {
+                    new(0, i),
+                    new(GridCount - 1, i),
+                    new(i, 0),
+                    new(i, GridCount - 1)
+                };
+                var dstPoint = Cv2.PerspectiveTransform(srcPoint, perspectiveMatrix);
+                Cv2.Line(image,dstPoint[0].ToPoint(), dstPoint[1].ToPoint(), new Scalar(243, 108, 50));
+                Cv2.Line(image,dstPoint[2].ToPoint(), dstPoint[3].ToPoint(), new Scalar(243, 108, 50));
             }
         }
 
-        if (contours.Length <= 0) return src;
-
         var boxes = contours.Select(Cv2.BoundingRect)
-            .Where(w => w.Width * w.Height >= MinArea && w.Width * w.Height <= MaxArea);
+            .Where(w => w.Width * w.Height >= MinArea && w.Width * w.Height <= MaxArea)
+            .ToList();
 
-        var imgTar = src.Clone();
+        if (boxes.Count <= 0) return image;
+
+        if (IsBoundariesSet)
+        {
+            var srcPoint = new Point2f(boxes[0].X + boxes[0].Width / 2f, boxes[0].Y + boxes[0].Height / 2f);
+            var perspectiveMatrix = Cv2.GetPerspectiveTransform(Boundaries, new[]
+            {
+                new Point2f(0, 0),
+                new Point2f(GridCount - 1, 0),
+                new Point2f(GridCount - 1, GridCount - 1),
+                new Point2f(0, GridCount - 1)
+            });
+            var dstPoint = Cv2.PerspectiveTransform(new[] { srcPoint }, perspectiveMatrix)[0];
+            CurrentPointX = dstPoint.X;
+            CurrentPointY = dstPoint.Y;
+        }
+
         foreach (var rect in boxes)
-            Cv2.Rectangle(imgTar,
+        {
+            Cv2.Rectangle(image,
                 new Point(rect.X, rect.Y),
                 new Point(rect.X + rect.Width, rect.Y + rect.Height),
                 new Scalar(0, 0, 255));
+        }
 
-        return imgTar;
+        Cv2.Rectangle(image,
+            new Point(boxes[0].X, boxes[0].Y),
+            new Point(boxes[0].X + boxes[0].Width, boxes[0].Y + boxes[0].Height),
+            new Scalar(77, 184, 45), 2);
+
+        return image;
     }
 
     public static bool IsBoundariesValid(Point2f leftTop, Point2f rightTop, Point2f rightBottom, Point2f leftBottom)
@@ -200,10 +233,10 @@ public class CameraManager
         var cross2 = vec2.X * vec3.Y - vec2.Y * vec3.X;
         var cross3 = vec3.X * vec4.Y - vec3.Y * vec4.X;
         var cross4 = vec4.X * vec1.Y - vec4.Y * vec1.X;
-        if (cross1 > 0 || cross2 > 0 || cross3 > 0 || cross4 > 0) return false;
+        if (cross1 < 0 || cross2 < 0 || cross3 < 0 || cross4 < 0) return false;
         return !(leftTop.X > rightTop.X) &&
-               !(rightTop.Y < rightBottom.Y) &&
+               !(rightTop.Y > rightBottom.Y) &&
                !(rightBottom.X < leftBottom.X) &&
-               !(leftBottom.Y > leftTop.Y);
+               !(leftBottom.Y < leftTop.Y);
     }
 }
