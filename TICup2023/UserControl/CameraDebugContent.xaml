@@ -3,13 +3,24 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:hc="https://handyorg.github.io/handycontrol"
+      xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:vm="clr-namespace:TICup2023.ViewModel" d:DesignHeight="1000"
       d:DesignWidth="1500" mc:Ignorable="d">
     <Grid.DataContext>
         <vm:CameraDebugContentViewModel />
     </Grid.DataContext>
-    <StackPanel>
-        <Image Width="960" Height="540" Source="{Binding CameraManager.CurrentFrame}" />
-    </StackPanel>
+    <Viewbox Margin="0,10,0,0" Stretch="Uniform">
+        <Border Background="{DynamicResource RegionBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1" CornerRadius="0">
+            <Image Source="{Binding CameraManager.CurrentFrame}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseLeftButtonDown">
+                        <i:InvokeCommandAction Command="{Binding SetBoundaryCommand}" PassEventArgsToCommand="True" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </Image>
+        </Border>
+    </Viewbox>
 </Grid>
