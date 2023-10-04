@@ -35,11 +35,25 @@ public partial class CameraContentViewModel : ObservableObject
         }
     }
     
+   
+    [RelayCommand]
+    private async Task ChangeCameraAsync()
+    {
+        await Task.Run(CameraManager.ChangeCamera);
+        OnPropertyChanged(nameof(CameraManager));
+    }
+    
     [RelayCommand]
     private async Task CloseCameraAsync()
     {
         await Task.Run(() => CameraManager.CloseCamera());
         OnPropertyChanged(nameof(CameraManager));
         IsCameraStateChanging = false;
+    }
+    
+    [RelayCommand]
+    private void ResetBoundaries()
+    {
+        CameraManager.ResetBoundaries();
     }
 }
