@@ -1,5 +1,4 @@
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -36,7 +35,7 @@ public partial class CameraDebugContentViewModel : ObservableObject
         }
 
         var point = e.GetPosition(e.Source as IInputElement);
-        point.Y = (e.Source as Image)!.ActualHeight - point.Y;
+        // point.Y = (e.Source as Image)!.ActualHeight - point.Y;
 
         if (_clickTimes == 3)
         {
