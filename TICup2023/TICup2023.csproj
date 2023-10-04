@@ -15,9 +15,15 @@
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <DebugType>none</DebugType>
+      <NoWarn>1701;1702;NU1701</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;NU1701</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
         <PackageReference Include="HandyControl" Version="3.4.0" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
@@ -29,7 +35,6 @@
         <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.8.0.20230708" />
         <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
         <PackageReference Include="System.IO.Ports" Version="7.0.0" />
-        <PackageReference Include="System.Management" Version="7.0.2" />
     </ItemGroup>
 
     <ItemGroup>
@@ -50,11 +55,6 @@
         <Resource Include="Resource\Image\Flag\cn.png" />
         <Resource Include="Resource\Image\Flag\en.png" />
         <!-- Lang -->
-    </ItemGroup>
-
-
-    <ItemGroup>
-      <Folder Include="Tool\Converter\" />
     </ItemGroup>
 
 </Project>
