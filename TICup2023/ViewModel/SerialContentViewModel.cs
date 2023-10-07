@@ -82,32 +82,6 @@ public partial class SerialContentViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(IsPortOpen))]
-    private void SendStart()
-    {
-        try
-        {
-            SerialManager.SendMsgAsync("B\n");
-        }
-        catch (Exception e)
-        {
-            Growl.Warning($"发送信息失败，异常信息为：{e.Message}");
-        }
-    }
-
-    [RelayCommand(CanExecute = nameof(IsPortOpen))]
-    private void SendEnd()
-    {
-        try
-        {
-            SerialManager.SendMsgAsync("E\n");
-        }
-        catch (Exception e)
-        {
-            Growl.Warning($"发送信息失败，异常信息为：{e.Message}");
-        }
-    }
-
-    [RelayCommand(CanExecute = nameof(IsPortOpen))]
     private void SendPos()
     {
         if (TrainingTargetPos == string.Empty) return;
@@ -138,6 +112,20 @@ public partial class SerialContentViewModel : ObservableObject
                 var msg = TextToSend.Replace(Environment.NewLine, _lineBreaks[LineBreakSelectedIndex]);
                 SerialManager.SendMsgAsync(msg);
             }
+        }
+        catch (Exception e)
+        {
+            Growl.Warning($"发送信息失败，异常信息为：{e.Message}");
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(IsPortOpen))]
+    private void SendTextModify(string par)
+    {
+        if (par == string.Empty) return;
+        try
+        {
+            SerialManager.SendMsgAsync(par);
         }
         catch (Exception e)
         {
@@ -181,9 +169,8 @@ public partial class SerialContentViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(SerialManager));
         OnPropertyChanged(nameof(MatchManager));
-        SendStartCommand.NotifyCanExecuteChanged();
-        SendEndCommand.NotifyCanExecuteChanged();
         SendPosCommand.NotifyCanExecuteChanged();
         SendTextCommand.NotifyCanExecuteChanged();
+        SendTextModifyCommand.NotifyCanExecuteChanged();
     }
 }

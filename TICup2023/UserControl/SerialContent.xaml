@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:hc="https://handyorg.github.io/handycontrol"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:vm="clr-namespace:TICup2023.ViewModel" d:DesignHeight="800"
+      xmlns:vm="clr-namespace:TICup2023.ViewModel" d:DesignHeight="1500"
       d:DesignWidth="224" mc:Ignorable="d">
     <Grid.DataContext>
         <vm:SerialContentViewModel />
@@ -80,6 +80,53 @@
                     Content="关闭串口"
                     Style="{StaticResource ButtonSuccess}"
                     Visibility="{Binding SerialManager.SerialPort.IsOpen, Converter={StaticResource Boolean2VisibilityConverter}}" />
+            <Expander Margin="10,0,10,10" Header="决赛快捷调试" IsExpanded="True">
+                <Border Background="{DynamicResource RegionBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1,0,1,1" CornerRadius="0,0,4,4">
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Width="85" Margin="10,10,5,10"
+                                    Command="{Binding SendTextModifyCommand}"
+                                    CommandParameter="A&#x0a;" Content="继续" />
+                            <Button Width="85" Margin="5,10,10,10"
+                                    Command="{Binding SendTextModifyCommand}"
+                                    CommandParameter="F&#x0a;" Content="无效" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Width="85" Margin="10,0,5,10"
+                                    Command="{Binding SendTextModifyCommand}"
+                                    CommandParameter="S&#x0a;" Content="立即停止" />
+                            <Button Width="85" Margin="5,0,10,10"
+                                    Command="{Binding SendTextModifyCommand}"
+                                    CommandParameter="E&#x0a;" Content="比赛结束" />
+                        </StackPanel>
+                        <hc:ElementGroup Margin="10,0,12,10">
+                            <hc:ElementGroup.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                    </Grid>
+                                </ItemsPanelTemplate>
+                            </hc:ElementGroup.ItemsPanel>
+                            <TextBox HorizontalAlignment="Stretch" DockPanel.Dock="Left"
+                                     Text="{Binding TrainingTargetPos}"
+                                     TextAlignment="Center" />
+                            <Button Grid.Column="1" Width="85" HorizontalAlignment="Right"
+                                    Command="{Binding SendPosCommand}"
+                                    Content="发送坐标" DockPanel.Dock="Right" />
+                        </hc:ElementGroup>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Width="85" Margin="10,0,5,10"
+                                    Command="{Binding SendTextModifyCommand}"
+                                    CommandParameter="C&#x0a;" Content="死机检查" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Expander>
             <Expander Margin="10,0,10,10" Header="训练赛操作" IsExpanded="True">
                 <Border Background="{DynamicResource RegionBrush}"
                         BorderBrush="{DynamicResource BorderBrush}"
@@ -87,11 +134,11 @@
                     <StackPanel Orientation="Vertical">
                         <StackPanel Orientation="Horizontal">
                             <Button Width="85" Margin="10,10,5,10"
-                                    Command="{Binding SendStartCommand}"
-                                    Content="开始" />
+                                    Command="{Binding SendTextModifyCommand}"
+                                    CommandParameter="B&#x0a;" Content="开始" />
                             <Button Width="85" Margin="5,10,10,10"
-                                    Command="{Binding SendEndCommand}"
-                                    Content="停止" />
+                                    Command="{Binding SendTextModifyCommand}"
+                                    CommandParameter="E&#x0a;" Content="停止" />
                         </StackPanel>
                         <hc:ElementGroup Margin="10,0,12,10">
                             <hc:ElementGroup.ItemsPanel>
