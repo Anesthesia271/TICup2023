@@ -10,12 +10,12 @@ public partial class MainContentViewModel : ObservableObject
     private CameraDebugContent CameraDebugContent { get; } = new();
     private SynthesisMatchContent SynthesisMatchContent { get; } = new();
 
-    [ObservableProperty] private string _contentTitle = "视频调试";
+    [ObservableProperty] private string _contentTitle = "综合";
     [ObservableProperty] private object _subContent;
 
     public MainContentViewModel()
     {
-        SubContent = CameraDebugContent;
+        SubContent = SynthesisMatchContent;
     }
 
     [RelayCommand]
