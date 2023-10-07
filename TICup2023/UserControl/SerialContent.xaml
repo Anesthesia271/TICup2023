@@ -163,7 +163,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <CheckBox Grid.Column="0" Content="接收转发" IsChecked="{Binding SerialReceiveForward}" />
+            <CheckBox Grid.Column="0" Content="显示收信" IsChecked="{Binding SerialReceiveDisplay}" />
             <CheckBox Grid.Column="1" Content="显示发信" IsChecked="{Binding SerialSendDisplay}" />
             <CheckBox Grid.Column="2" Content="换行" IsChecked="{Binding SerialSendNewLine}" />
         </Grid>
