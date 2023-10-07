@@ -4,6 +4,7 @@
       xmlns:converter="clr-namespace:TICup2023.Tool.Converter"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:hc="https://handyorg.github.io/handycontrol"
+      xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:vm="clr-namespace:TICup2023.ViewModel" d:DesignHeight="800"
       d:DesignWidth="224" mc:Ignorable="d">
@@ -13,17 +14,73 @@
     <Grid.Resources>
         <converter:MultiIntConverter x:Key="MultiIntConverter" />
     </Grid.Resources>
-    <StackPanel>
-        <hc:ComboBox Margin="10,0,10,10" hc:TitleElement.HorizontalAlignment="Stretch"
-                     hc:TitleElement.Title="地图边长:" hc:TitleElement.TitlePlacement="Left"
-                     hc:TitleElement.TitleWidth="60"
-                     ItemsSource="{Binding MatchManager.MapSizeList, Mode=OneWay}">
-            <hc:ComboBox.SelectedItem>
-                <MultiBinding Converter="{StaticResource MultiIntConverter}">
-                    <Binding Path="MatchManager.MapSize" />
-                    <Binding Path="CameraManager.GridCount" />
-                </MultiBinding>
-            </hc:ComboBox.SelectedItem>
-        </hc:ComboBox>
-    </StackPanel>
+    <hc:ScrollViewer Grid.Row="0" IsInertiaEnabled="True"
+                     Style="{StaticResource ScrollViewerBaseStyle}"
+                     VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <Expander Margin="10,10,10,10" Header="串口属性" IsExpanded="True">
+                <Border Background="{DynamicResource RegionBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1,0,1,1" CornerRadius="0,0,4,4">
+                    <StackPanel Orientation="Vertical">
+                        <hc:ComboBox Margin="10,10,10,10" hc:TitleElement.HorizontalAlignment="Stretch"
+                                     hc:TitleElement.Title="地图尺寸:" hc:TitleElement.TitlePlacement="Left"
+                                     hc:TitleElement.TitleWidth="60"
+                                     IsEnabled="{Binding MatchManager.IsMatchStarted, Converter={StaticResource Boolean2BooleanReConverter}}"
+                                     ItemsSource="{Binding MatchManager.MapSizeList, Mode=OneWay}">
+                            <hc:ComboBox.SelectedItem>
+                                <MultiBinding Converter="{StaticResource MultiIntConverter}">
+                                    <Binding Path="MatchManager.MapSize" />
+                                    <Binding Path="CameraManager.GridCount" />
+                                </MultiBinding>
+                            </hc:ComboBox.SelectedItem>
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                                    <i:InvokeCommandAction Command="{Binding ChangeSizeCommand}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </hc:ComboBox>
+                        <hc:NumericUpDown Margin="10,0,10,10" hc:TitleElement.Title="取整误差:"
+                                          hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="60"
+                                          DecimalPlaces="2" Increment="0.01"
+                                          IsEnabled="{Binding MatchManager.IsMatchStarted, Converter={StaticResource Boolean2BooleanReConverter}}"
+                                          Style="{StaticResource NumericUpDownExtend}"
+                                          Value="{Binding MatchManager.ErrorRange}" />
+                        <hc:NumericUpDown Margin="10,0,10,10" hc:TitleElement.Title="地图重发时间:"
+                                          hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="85"
+                                          IsEnabled="{Binding MatchManager.IsMatchStarted, Converter={StaticResource Boolean2BooleanReConverter}}"
+                                          Style="{StaticResource NumericUpDownExtend}"
+                                          Value="{Binding MatchManager.StartResendTime}" />
+                        <hc:NumericUpDown Margin="10,0,10,10" hc:TitleElement.Title="信息重发时间:"
+                                          hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="85"
+                                          IsEnabled="{Binding MatchManager.IsMatchStarted, Converter={StaticResource Boolean2BooleanReConverter}}"
+                                          Style="{StaticResource NumericUpDownExtend}"
+                                          Value="{Binding MatchManager.NormalResendTime}" />
+                        <hc:NumericUpDown Margin="10,0,10,10" hc:TitleElement.Title="最大重发次数:"
+                                          hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="85"
+                                          IsEnabled="{Binding MatchManager.IsMatchStarted, Converter={StaticResource Boolean2BooleanReConverter}}"
+                                          Style="{StaticResource NumericUpDownExtend}"
+                                          Value="{Binding MatchManager.FailedTimes}" />
+                    </StackPanel>
+                </Border>
+            </Expander>
+            <TextBox Height="80" Margin="10,0,10,10" VerticalContentAlignment="Top"
+                     AcceptsReturn="True"
+                     Text="{Binding MapString}"
+                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+            <Button Width="204" Margin="10,0,10,10"
+                    Command="{Binding InitMapCommand}"
+                    Content="初始化地图"
+                    IsEnabled="{Binding MatchManager.IsMatchStarted, Converter={StaticResource Boolean2BooleanReConverter}}" />
+            <Button Width="204" Margin="10,0,10,10"
+                    Command="{Binding StartMatchCommand}"
+                    Content="开始比赛"
+                    Visibility="{Binding MatchManager.IsMatchStarted, Converter={StaticResource Boolean2VisibilityReConverter}}" />
+            <Button Width="204" Margin="10,0,10,10"
+                    Command="{Binding StopMatchCommand}"
+                    Content="叫停比赛"
+                    Style="{StaticResource ButtonSuccess}"
+                    Visibility="{Binding MatchManager.IsMatchStarted, Converter={StaticResource Boolean2VisibilityConverter}}" />
+        </StackPanel>
+    </hc:ScrollViewer>
 </Grid>
