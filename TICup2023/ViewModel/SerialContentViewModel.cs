@@ -7,7 +7,6 @@ using TICup2023.Model;
 
 namespace TICup2023.ViewModel;
 
-
 public partial class SerialContentViewModel : ObservableObject
 {
     [ObservableProperty] private SerialManager _serialManager = SerialManager.GetInstance();
@@ -19,7 +18,7 @@ public partial class SerialContentViewModel : ObservableObject
     [ObservableProperty] private string _trainingTargetPos = "45";
     [ObservableProperty] private string _serialData = string.Empty;
     [ObservableProperty] private string _textToSend = string.Empty;
-    [ObservableProperty] private bool _serialReceiveForward = true;
+    [ObservableProperty] private bool _serialReceiveDisplay = true;
     [ObservableProperty] private bool _serialSendDisplay = true;
     [ObservableProperty] private bool _serialSendNewLine = true;
     [ObservableProperty] private bool _isOpening;
@@ -30,9 +29,10 @@ public partial class SerialContentViewModel : ObservableObject
 
     public SerialContentViewModel()
     {
-        MatchManager.SerialSendText += SendText;
+        SerialManager.DataReceived += TextReceivedDisplay;
+        SerialManager.DataSent += TextSentDisplay;
     }
-    
+
     [RelayCommand]
     private void UpdatePortNameList()
     {
@@ -41,6 +41,7 @@ public partial class SerialContentViewModel : ObservableObject
         {
             SerialManager.SerialPort.PortName = " ";
         }
+
         OnPropertyChanged(nameof(SerialManager));
     }
 
@@ -49,14 +50,8 @@ public partial class SerialContentViewModel : ObservableObject
     {
         try
         {
-            SerialManager.DataReceived -= TextReceivedDisplay;
-            SerialManager.DataReceived += TextReceivedDisplay;
             await Task.Run(SerialManager.OpenPort);
-            OnPropertyChanged(nameof(SerialManager));
-            SendStartCommand.NotifyCanExecuteChanged();
-            SendEndCommand.NotifyCanExecuteChanged();
-            SendPosCommand.NotifyCanExecuteChanged();
-            SendTextCommand.NotifyCanExecuteChanged();
+            NotifyAllPropertyChanged();
             IsOpening = false;
         }
         catch (Exception e)
@@ -69,14 +64,16 @@ public partial class SerialContentViewModel : ObservableObject
     [RelayCommand]
     private void ClosePort()
     {
+        if (MatchManager.IsMatchStarted)
+        {
+            Growl.Warning("请先停止比赛再关闭串口！");
+            return;
+        }
+
         try
         {
             SerialManager.ClosePort();
-            OnPropertyChanged(nameof(SerialManager));
-            SendStartCommand.NotifyCanExecuteChanged();
-            SendEndCommand.NotifyCanExecuteChanged();
-            SendPosCommand.NotifyCanExecuteChanged();
-            SendTextCommand.NotifyCanExecuteChanged();
+            NotifyAllPropertyChanged();
         }
         catch (Exception e)
         {
@@ -85,16 +82,11 @@ public partial class SerialContentViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(IsPortOpen))]
-    private async Task SendStartAsync()
+    private void SendStart()
     {
         try
         {
-            await Task.Run(() => SerialManager.SendMsg("B\n"));
-            if (!SerialSendDisplay) return;
-            if (SerialData == string.Empty)
-                SerialData += @"> B\n";
-            else
-                SerialData += @$"{Environment.NewLine}> B\n";
+            SerialManager.SendMsgAsync("B\n");
         }
         catch (Exception e)
         {
@@ -103,16 +95,11 @@ public partial class SerialContentViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(IsPortOpen))]
-    private async Task SendEndAsync()
+    private void SendEnd()
     {
         try
         {
-            await Task.Run(() => SerialManager.SendMsg("E\n"));
-            if (!SerialSendDisplay) return;
-            if (SerialData == string.Empty)
-                SerialData += @"> E\n";
-            else
-                SerialData += @$"{Environment.NewLine}> E\n";
+            SerialManager.SendMsgAsync("E\n");
         }
         catch (Exception e)
         {
@@ -121,16 +108,12 @@ public partial class SerialContentViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(IsPortOpen))]
-    private async Task SendPosAsync()
+    private void SendPos()
     {
+        if (TrainingTargetPos == string.Empty) return;
         try
         {
-            await Task.Run(() => SerialManager.SendMsg($"{TrainingTargetPos}\n"));
-            if (!SerialSendDisplay) return;
-            if (SerialData == string.Empty)
-                SerialData += @$"> {TrainingTargetPos}\n";
-            else
-                SerialData += @$"{Environment.NewLine}> {TrainingTargetPos}\n";
+            SerialManager.SendMsgAsync($"{TrainingTargetPos}\n");
         }
         catch (Exception e)
         {
@@ -139,39 +122,21 @@ public partial class SerialContentViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(IsPortOpen))]
-    private async Task SendTextAsync()
+    private void SendText()
     {
+        if (TextToSend == string.Empty) return;
         try
         {
             if (SerialSendNewLine)
             {
                 var msg = $"{TextToSend.Replace(Environment.NewLine,
                     _lineBreaks[LineBreakSelectedIndex])}{_lineBreaks[LineBreakSelectedIndex]}";
-                await Task.Run(() =>
-                    SerialManager.SendMsg(msg));
-                if (!SerialSendDisplay) return;
-                if (SerialData == string.Empty)
-                    SerialData += $"> {msg
-                        .Replace("\r", @"\r")
-                        .Replace("\n", @"\n")}";
-                else
-                    SerialData += $"{Environment.NewLine}> {msg
-                        .Replace("\r", @"\r")
-                        .Replace("\n", @"\n")}";
+                SerialManager.SendMsgAsync(msg);
             }
             else
             {
                 var msg = TextToSend.Replace(Environment.NewLine, _lineBreaks[LineBreakSelectedIndex]);
-                await Task.Run(() => SerialManager.SendMsg(msg));
-                if (!SerialSendDisplay) return;
-                if (SerialData == string.Empty)
-                    SerialData += $"> {msg
-                        .Replace("\r", @"\r")
-                        .Replace("\n", @"\n")}";
-                else
-                    SerialData += $"{Environment.NewLine}> {msg
-                        .Replace("\r", @"\r")
-                        .Replace("\n", @"\n")}";
+                SerialManager.SendMsgAsync(msg);
             }
         }
         catch (Exception e)
@@ -188,32 +153,37 @@ public partial class SerialContentViewModel : ObservableObject
 
     private void TextReceivedDisplay(string msg)
     {
-        if (!SerialReceiveForward || msg == string.Empty) return;
+        if (!SerialReceiveDisplay || msg == string.Empty) return;
         if (SerialData == string.Empty)
-            SerialData += $"< {msg.Replace("\r", @"\r").Replace("\n", @"\n")}";
+            SerialData += $"< {msg
+                .Replace("\r", @"\r")
+                .Replace("\n", @"\n")}";
         else
-            SerialData += $"{Environment.NewLine}< {msg.Replace("\r", @"\r").Replace("\n", @"\n")}";
+            SerialData += $"{Environment.NewLine}< {msg
+                .Replace("\r", @"\r")
+                .Replace("\n", @"\n")}";
     }
 
-    private void SendText(string msg)
+    private void TextSentDisplay(string msg)
     {
-        if (!SerialManager.SerialPort.IsOpen) return;
-        try
-        {
-            SerialManager.SendMsg(msg);
-            if (!SerialSendDisplay) return;
-            if (SerialData == string.Empty)
-                SerialData += $"> {msg
-                    .Replace("\r", @"\r")
-                    .Replace("\n", @"\n")}";
-            else
-                SerialData += $"{Environment.NewLine}> {msg
-                    .Replace("\r", @"\r")
-                    .Replace("\n", @"\n")}";
-        }
-        catch (Exception e)
-        {
-            Growl.Warning($"发送信息失败，异常信息为：{e.Message}");
-        }
+        if (!SerialSendDisplay || msg == string.Empty) return;
+        if (SerialData == string.Empty)
+            SerialData += $"> {msg.
+                Replace("\r", @"\r")
+                .Replace("\n", @"\n")}";
+        else
+            SerialData += $"{Environment.NewLine}> {msg
+                .Replace("\r", @"\r")
+                .Replace("\n", @"\n")}";
+    }
+
+    private void NotifyAllPropertyChanged()
+    {
+        OnPropertyChanged(nameof(SerialManager));
+        OnPropertyChanged(nameof(MatchManager));
+        SendStartCommand.NotifyCanExecuteChanged();
+        SendEndCommand.NotifyCanExecuteChanged();
+        SendPosCommand.NotifyCanExecuteChanged();
+        SendTextCommand.NotifyCanExecuteChanged();
     }
 }

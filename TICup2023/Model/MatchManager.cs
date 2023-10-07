@@ -16,6 +16,18 @@ public struct Node
     public char Value;
 }
 
+public struct PosInt
+{
+    public int X;
+    public int Y;
+}
+
+public struct PosFloat
+{
+    public float X;
+    public float Y;
+}
+
 public enum Status
 {
     Idle,
@@ -37,7 +49,7 @@ public class MatchManager
     public List<Node> NodeList { get; } = new();
     public char[][] Map { get; set; } = new char[8][];
 
-    public int[] MapSizeList { get; } = { 7, 8, 10 };
+    public int[] MapSizeList { get; } = { 7, 8, 9, 10 };
     public int MapSize { get; set; } = 8;
     public int StartResendTime { get; set; } = 3000;
     public int NormalResendTime { get; set; } = 1000;
@@ -72,7 +84,6 @@ public class MatchManager
     public int IntPosY { get; set; }
 
     public NewMsgProduced? NewMsgProduced { get; set; }
-    public SerialSendText? SerialSendText { get; set; }
 
     public static MatchManager GetInstance() => Instance;
 
@@ -149,7 +160,7 @@ public class MatchManager
         NewMsgProduced?.Invoke("比赛开始");
         _stopwatch.Start();
 
-        SerialSendText?.Invoke(_mapString);
+        SerialManager.SendMsgAsync(_mapString);
         CurrentStatus = Status.Init;
         _lastTimeRecord = _stopwatch.Elapsed;
         _failedTimes = 0;
@@ -196,7 +207,7 @@ public class MatchManager
                 {
                     NewMsgProduced?.Invoke($"小车位置 ({IntPosX}, {IntPosY})");
                     NewMsgProduced?.Invoke("小车离开了网格区域");
-                    SerialSendText?.Invoke("S\n");
+                    SerialManager.SendMsgAsync("S\n");
                     NewMsgProduced?.Invoke("""第1次发送"S\n"指令...""");
                     CurrentStatus = Status.WaitMsg;
                     _currentResendMsg = "S\n";
@@ -211,7 +222,7 @@ public class MatchManager
                 if (LeftStep < 0)
                 {
                     NewMsgProduced?.Invoke("小车剩余步数用完");
-                    SerialSendText?.Invoke("E\n");
+                    SerialManager.SendMsgAsync("E\n");
                     NewMsgProduced?.Invoke("""第1次发送"E\n"指令...""");
                     CurrentStatus = Status.WaitMsg;
                     _currentResendMsg = "E\n";
@@ -228,7 +239,7 @@ public class MatchManager
         if (Math.Abs(PosX - IntPosX) > ErrorRange && Math.Abs(PosY - IntPosY) > ErrorRange)
         {
             NewMsgProduced?.Invoke("小车离开了网格区域");
-            SerialSendText?.Invoke("S\n");
+            SerialManager.SendMsgAsync("S\n");
             NewMsgProduced?.Invoke("""第1次发送"S\n"指令...""");
             CurrentStatus = Status.WaitMsg;
             _currentResendMsg = "S\n";
@@ -285,7 +296,7 @@ public class MatchManager
             {
                 LastCommandIntPosX = IntPosX;
                 LastCommandIntPosY = IntPosY;
-                SerialSendText?.Invoke("A\n");
+                SerialManager.SendMsgAsync("A\n");
                 NewMsgProduced?.Invoke("""第1次发送"A\n"指令...""");
                 CurrentStatus = Status.WaitMsg;
                 _currentResendMsg = "A\n";
@@ -296,8 +307,8 @@ public class MatchManager
             }
             else
             {
-                SerialSendText?.Invoke("F\n");
                 NewMsgProduced?.Invoke("小车发送连接1指令位置不合法");
+                SerialManager.SendMsgAsync("F\n");
                 NewMsgProduced?.Invoke("""第1次发送"F\n"指令...""");
                 CurrentStatus = Status.WaitMsg;
                 _currentResendMsg = "F\n";
@@ -312,7 +323,7 @@ public class MatchManager
             {
                 LastCommandIntPosX = IntPosX;
                 LastCommandIntPosY = IntPosY;
-                SerialSendText?.Invoke("A\n");
+                SerialManager.SendMsgAsync("A\n");
                 NewMsgProduced?.Invoke("""第1次发送"A\n"指令...""");
                 CurrentStatus = Status.WaitMsg;
                 _currentResendMsg = "A\n";
@@ -321,8 +332,8 @@ public class MatchManager
             }
             else
             {
-                SerialSendText?.Invoke("F\n");
                 NewMsgProduced?.Invoke("小车发送连接2指令位置不合法");
+                SerialManager.SendMsgAsync("F\n");
                 NewMsgProduced?.Invoke("""第1次发送"F\n"指令...""");
                 CurrentStatus = Status.WaitMsg;
                 _currentResendMsg = "F\n";
@@ -374,7 +385,7 @@ public class MatchManager
 
         if (msg.Contains('P'))
         {
-            SerialSendText?.Invoke($"{IntPosX}{IntPosY}\n");
+            SerialManager.SendMsgAsync($"{IntPosX}{IntPosY}\n");
             LeftStep--;
         }
     }
@@ -399,14 +410,14 @@ public class MatchManager
                 NewMsgProduced?.Invoke($"第{_failedTimes}次发送地图信息失败");
                 StopMatch();
             }
-
-            SerialSendText?.Invoke(_mapString);
+            SerialManager.SendMsgAsync(_mapString);
             _lastTimeRecord = _stopwatch.Elapsed;
             _failedTimes++;
             NewMsgProduced?.Invoke($"第{_failedTimes + 1}次发送地图信息...");
         }
 
         if (IntPosX == 0 && IntPosY == 0) return;
+        // TODO
         NewMsgProduced?.Invoke("小车未确认地图信息便开始移动");
         StopMatch();
     }
@@ -436,11 +447,11 @@ public class MatchManager
             if (_failedTimes >= FailedTimes)
             {
                 NewMsgProduced?.Invoke($"第{_failedTimes}次发送\"{_currentResendMsg.Replace("\n", @"\n")}\"指令失败，比赛中止");
-                SerialSendText?.Invoke("S\n");
+                SerialManager.SendMsgAsync("S\n");
                 StopMatch();
             }
 
-            SerialSendText?.Invoke(_currentResendMsg);
+            SerialManager.SendMsgAsync(_currentResendMsg);
             _lastTimeRecord = _stopwatch.Elapsed;
             _failedTimes++;
             NewMsgProduced?.Invoke($"第{_failedTimes}次发送\"{_currentResendMsg.Replace("\n", @"\n")}\"指令...");
