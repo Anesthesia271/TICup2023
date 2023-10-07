@@ -29,11 +29,11 @@ public class CameraManager
 
     public BitmapSource? CurrentFrame { get; private set; }
 
-    public double MinH { get; set; } = 35;
-    public double MaxH { get; set; } = 77;
-    public double MinS { get; set; } = 43;
+    public double MinH { get; set; } = 145;
+    public double MaxH { get; set; } = 190;
+    public double MinS { get; set; } = 137;
     public double MaxS { get; set; } = 255;
-    public double MinV { get; set; } = 46;
+    public double MinV { get; set; } = 137;
     public double MaxV { get; set; } = 255;
     public bool FlipX { get; set; }
     public bool FlipY { get; set; }
@@ -180,8 +180,8 @@ public class CameraManager
                     new(i, GridCount - 1)
                 };
                 var dstPoint = Cv2.PerspectiveTransform(srcPoint, perspectiveMatrix);
-                Cv2.Line(image,dstPoint[0].ToPoint(), dstPoint[1].ToPoint(), new Scalar(243, 108, 50));
-                Cv2.Line(image,dstPoint[2].ToPoint(), dstPoint[3].ToPoint(), new Scalar(243, 108, 50));
+                Cv2.Line(image, dstPoint[0].ToPoint(), dstPoint[1].ToPoint(), new Scalar(243, 108, 50));
+                Cv2.Line(image, dstPoint[2].ToPoint(), dstPoint[3].ToPoint(), new Scalar(243, 108, 50));
             }
         }
 
@@ -189,11 +189,8 @@ public class CameraManager
             .Where(w => w.Width * w.Height >= MinArea && w.Width * w.Height <= MaxArea)
             .ToList();
 
-        if (boxes.Count <= 0) return image;
-
         if (IsBoundariesSet)
         {
-            var srcPoint = new Point2f(boxes[0].X + boxes[0].Width / 2f, boxes[0].Y + boxes[0].Height / 2f);
             var perspectiveMatrix = Cv2.GetPerspectiveTransform(Boundaries, new[]
             {
                 new Point2f(0, 0),
@@ -201,11 +198,40 @@ public class CameraManager
                 new Point2f(GridCount - 1, GridCount - 1),
                 new Point2f(0, GridCount - 1)
             });
-            var dstPoint = Cv2.PerspectiveTransform(new[] { srcPoint }, perspectiveMatrix)[0];
-            CurrentPointX = dstPoint.X;
-            CurrentPointY = dstPoint.Y;
-        }
 
+            // foreach (var rect in boxes)
+            // {
+            //     var srcPoint = new Point2f(rect.X + rect.Width / 2f, rect.Y + rect.Height / 2f);
+            //     var dstPoint = Cv2.PerspectiveTransform(new[] { srcPoint }, perspectiveMatrix)[0];
+            //     if (dstPoint.X <= -1 || dstPoint.X >= GridCount || dstPoint.Y <= -1 || dstPoint.Y >= GridCount)
+            //     {
+            //         boxes.Remove(rect);
+            //     }
+            // }
+
+            for (var i = 0; i < boxes.Count; i++)
+            {
+                var srcPoint = new Point2f(boxes[i].X + boxes[i].Width / 2f, boxes[i].Y + boxes[i].Height / 2f);
+                var dstPoint = Cv2.PerspectiveTransform(new[] { srcPoint }, perspectiveMatrix)[0];
+                if (!(dstPoint.X <= -1) && 
+                    !(dstPoint.X >= GridCount) && 
+                    !(dstPoint.Y <= -1) &&
+                    !(dstPoint.Y >= GridCount)) continue;
+                boxes.RemoveAt(i);
+                i--;
+            }
+            
+            if (boxes.Count <= 0) return image;
+
+            var srcZeroPoint = new Point2f(boxes[0].X + boxes[0].Width / 2f, boxes[0].Y + boxes[0].Height / 2f);
+            var dstZeroPoint = Cv2.PerspectiveTransform(new[] { srcZeroPoint }, perspectiveMatrix)[0];
+
+            CurrentPointX = dstZeroPoint.X;
+            CurrentPointY = dstZeroPoint.Y;
+        }
+        
+        if (boxes.Count <= 0) return image;
+        
         foreach (var rect in boxes)
         {
             Cv2.Rectangle(image,
