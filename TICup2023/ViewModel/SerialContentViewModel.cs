@@ -7,9 +7,11 @@ using TICup2023.Model;
 
 namespace TICup2023.ViewModel;
 
+
 public partial class SerialContentViewModel : ObservableObject
 {
     [ObservableProperty] private SerialManager _serialManager = SerialManager.GetInstance();
+    [ObservableProperty] private MatchManager _matchManager = MatchManager.GetInstance();
 
     [ObservableProperty] private string[] _lineBreakList = { @"\r\n (CRLF)", @"\r (CR)", @"\n (LF)" };
     [ObservableProperty] private int _lineBreakSelectedIndex = 2;
@@ -26,6 +28,11 @@ public partial class SerialContentViewModel : ObservableObject
 
     private bool IsPortOpen() => SerialManager.SerialPort.IsOpen;
 
+    public SerialContentViewModel()
+    {
+        MatchManager.SerialSendText += SendText;
+    }
+    
     [RelayCommand]
     private void UpdatePortNameList()
     {
@@ -34,7 +41,6 @@ public partial class SerialContentViewModel : ObservableObject
         {
             SerialManager.SerialPort.PortName = " ";
         }
-
         OnPropertyChanged(nameof(SerialManager));
     }
 
@@ -187,5 +193,27 @@ public partial class SerialContentViewModel : ObservableObject
             SerialData += $"< {msg.Replace("\r", @"\r").Replace("\n", @"\n")}";
         else
             SerialData += $"{Environment.NewLine}< {msg.Replace("\r", @"\r").Replace("\n", @"\n")}";
+    }
+
+    private void SendText(string msg)
+    {
+        if (!SerialManager.SerialPort.IsOpen) return;
+        try
+        {
+            SerialManager.SendMsg(msg);
+            if (!SerialSendDisplay) return;
+            if (SerialData == string.Empty)
+                SerialData += $"> {msg
+                    .Replace("\r", @"\r")
+                    .Replace("\n", @"\n")}";
+            else
+                SerialData += $"{Environment.NewLine}> {msg
+                    .Replace("\r", @"\r")
+                    .Replace("\n", @"\n")}";
+        }
+        catch (Exception e)
+        {
+            Growl.Warning($"发送信息失败，异常信息为：{e.Message}");
+        }
     }
 }
