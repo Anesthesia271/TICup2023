@@ -1,13 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO.Ports;
 using System.Threading.Tasks;
 using TICup2023.Tool.Helper;
 
 namespace TICup2023.Model;
-
-public delegate void DataReceived(string msg);
-
-public delegate void DataSent(string msg);
 
 public class SerialManager
 {
@@ -24,8 +21,8 @@ public class SerialManager
         ReadTimeout = 1000
     };
 
-    public DataReceived? DataReceived { get; set; }
-    public DataSent? DataSent { get; set; }
+    public Action<string>? DataReceived { get; set; }
+    public Action<string>? DataSent { get; set; }
 
     private SerialManager()
     {
@@ -46,10 +43,10 @@ public class SerialManager
     {
         SerialPort.Open();
     }
-    
+
     public async void SendMsgAsync(string msg)
     {
-        await Task.Run(() => { SerialPort.Write(msg);});
+        await Task.Run(() => { SerialPort.Write(msg); });
         DataSent?.Invoke(msg);
     }
 
