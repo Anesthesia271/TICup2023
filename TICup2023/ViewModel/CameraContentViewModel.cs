@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using HandyControl.Controls;
 using TICup2023.Model;
 
@@ -35,7 +36,6 @@ public partial class CameraContentViewModel : ObservableObject
         }
     }
     
-   
     [RelayCommand]
     private async Task ChangeCameraAsync()
     {
@@ -55,5 +55,6 @@ public partial class CameraContentViewModel : ObservableObject
     private void ResetBoundaries()
     {
         CameraManager.ResetBoundaries();
+        WeakReferenceMessenger.Default.Send(new ResetBoundaryMessage());
     }
 }
