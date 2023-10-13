@@ -40,7 +40,7 @@ public class CameraManager
     public int MaxArea { get; set; } = 2000;
     public Point2f[] Boundaries { get; } = { new(-1, -1), new(-1, -1), new(-1, -1), new(-1, -1) };
     public bool IsBoundariesSet => Boundaries[3].X >= 0;
-    public int GridCount { get; set; } = 8;
+    public int GridCount { get; set; } = 10;
     public bool ShowGrid { get; set; } = true;
 
     public float CurrentPointX { get; private set; } = -1;
@@ -145,7 +145,7 @@ public class CameraManager
         Cv2.Dilate(dst, dst, kernel); // 膨胀
         Cv2.Erode(dst, dst, kernel); // 腐蚀
         Cv2.FindContours(dst, out var contours, out _, RetrievalModes.External,
-            ContourApproximationModes.ApproxSimple);
+            ContourApproximationModes.ApproxTC89KCOS);
 
         PaintBoundaries(ref src);
 
