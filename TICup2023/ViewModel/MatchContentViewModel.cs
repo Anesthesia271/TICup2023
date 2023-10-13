@@ -12,17 +12,18 @@ public partial class MatchContentViewModel : ObservableObject
     [ObservableProperty] private MatchManager _matchManager = MatchManager.GetInstance();
     [ObservableProperty] private CameraManager _cameraManager = CameraManager.GetInstance();
 
-    [ObservableProperty] private string _mapString = "11a 13A 74b 57B 25I 61i 33d 63D 66e 31E 41F 17f 75G 16g\\n";
+    [ObservableProperty]
+    private string _mapString = "11b 14B 44c 49C 69e 91E 41f 19F 75G 16g 25I 61i 65i 99j 47j 22J 53m 57m 88M\\n";
 
     public MatchContentViewModel()
     {
         MatchManager.NewMsgProduced += NewMessage;
     }
-    
+
     [RelayCommand]
     private void InitMap()
     {
-        WeakReferenceMessenger.Default.Send(new MapMessage(MapString));
+        WeakReferenceMessenger.Default.Send(new MapMessage(MapString.Replace("\\n", "\n")));
     }
 
     [RelayCommand]
@@ -54,12 +55,10 @@ public partial class MatchContentViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ChangeSize()
+    private static void ChangeSize()
     {
-        WeakReferenceMessenger.Default.Send(new LogMessage());
+        WeakReferenceMessenger.Default.Send(new ChangeSizeMessage());
     }
-
-    private bool CanInitMapExecute() => !MatchManager.IsMatchStarted;
 
     private void NewMessage(string _)
     {
