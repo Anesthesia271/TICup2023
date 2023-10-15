@@ -28,11 +28,11 @@ public class CameraManager
 
     public BitmapSource? CurrentFrame { get; private set; }
 
-    public double MinH { get; set; } = 145;
-    public double MaxH { get; set; } = 190;
-    public double MinS { get; set; } = 137;
+    public double MinH { get; set; } = 57;
+    public double MaxH { get; set; } = 109;
+    public double MinS { get; set; } = 70;
     public double MaxS { get; set; } = 255;
-    public double MinV { get; set; } = 137;
+    public double MinV { get; set; } = 121;
     public double MaxV { get; set; } = 255;
     public bool FlipX { get; set; }
     public bool FlipY { get; set; }
