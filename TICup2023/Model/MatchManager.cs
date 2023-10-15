@@ -48,8 +48,6 @@ public enum Status
     WaitMsg
 }
 
-// TODO: 重构
-// TODO: 重写分值计算逻辑
 public class MatchManager
 {
     private static readonly MatchManager Instance = new();
