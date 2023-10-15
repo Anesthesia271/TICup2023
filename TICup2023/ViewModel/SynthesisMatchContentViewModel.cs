@@ -28,7 +28,7 @@ public partial class SynthesisMatchContentViewModel : ObservableObject
     [ObservableProperty] private Canvas _foregroundCanvas = new();
 
     [ObservableProperty] private string _matchInfo = string.Empty;
-    
+
     private Dictionary<int, int> _colorIndexDict = new();
 
     private readonly Path _playerPath;
@@ -73,19 +73,41 @@ public partial class SynthesisMatchContentViewModel : ObservableObject
         };
 
         MatchManager.NewMsgProduced += NewMessage;
-        
+
         WeakReferenceMessenger.Default.Register<NewLineMessage>(this, (_, message) =>
         {
-            var line = new Line
+            // var line = new Line
+            // {
+            //     X1 = message.X1 * 100 + 50,
+            //     Y1 = (MatchManager.MapSize - message.Y1 - 1) * 100 + 20,
+            //     X2 = message.X2 * 100 + 50,
+            //     Y2 = (MatchManager.MapSize - message.Y2 - 1) * 100 + 20,
+            //     StrokeThickness = 3
+            // };
+            // line.Stroke = _brushes[_colorIndexDict[message.Score]];
+            // ForegroundCanvas.Children.Add(line);
+            
+            var geometry = new PathGeometry();
+
+            var pathLine = new Path
             {
-                X1 = message.X1 * 100 + 50,
-                Y1 = (MatchManager.MapSize - message.Y1 - 1) * 100 + 20,
-                X2 = message.X2 * 100 + 50,
-                Y2 = (MatchManager.MapSize - message.Y2 - 1) * 100 + 20,
-                StrokeThickness = 3
+                Stroke = _brushes[_colorIndexDict[message.Score]],
+                StrokeThickness = 3,
+                Data = geometry
             };
-            line.Stroke = _brushes[_colorIndexDict[message.Score]];
-            ForegroundCanvas.Children.Add(line);
+            var p2 = new Point(message.X1 * 100 + 50, (MatchManager.MapSize - message.Y1 - 1) * 100 + 20);
+            var p1 = new Point(message.X2 * 100 + 50, (MatchManager.MapSize - message.Y2 - 1) * 100 + 20);
+
+            var pathFigure = new PathFigure();
+            geometry.Figures.Add(pathFigure);
+            pathFigure.StartPoint = p1;
+
+            var bezierSegment = new BezierSegment(p1,
+                GetControlPoint(p1, p2), p2, true);
+
+            pathFigure.Segments.Add(bezierSegment);
+
+            ForegroundCanvas.Children.Add(pathLine);
         });
 
         RePaintCanvas();
@@ -187,6 +209,30 @@ public partial class SynthesisMatchContentViewModel : ObservableObject
         }
 
         Growl.Success("地图初始化成功！");
+
+
+        // var line = new Line
+        // {
+        //     X1 = 1 * 100 + 50,
+        //     Y1 = (MatchManager.MapSize - 1 - 1) * 100 + 20,
+        //     X2 = 8 * 100 + 50,
+        //     Y2 = (MatchManager.MapSize - 8 - 1) * 100 + 20,
+        //     StrokeThickness = 3
+        // };
+        // line.SetResourceReference(Shape.StrokeProperty, "PrimaryBrush");
+        // ForegroundCanvas.Children.Add(line);
+    }
+
+    private Point GetControlPoint(Point p1, Point p2)
+    {
+        double minY = Math.Min(p1.Y, p2.Y),
+            maxY = Math.Max(p1.Y, p2.Y);
+
+        return new Point
+        {
+            X = (p1.X + p2.X) / 2,
+            Y = maxY / 4 * 3 + minY / 4 + Math.Abs(p1.X - p2.X) * 0.1
+        };
     }
 
     private void NewMessage(string msg)

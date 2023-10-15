@@ -13,7 +13,7 @@ public partial class MatchContentViewModel : ObservableObject
     [ObservableProperty] private CameraManager _cameraManager = CameraManager.GetInstance();
 
     [ObservableProperty]
-    private string _mapString = "11b 14B 44c 49C 69e 91E 41f 19F 75G 16g 25I 61i 65i 99j 47j 22J 53m 57m 88M\\n";
+    private string _mapString = "11b 13B 74c 57C 92e 66E 41f 75F 28h 94H 21i 77I 44j 89J 35k 98K 32l 99L\\n";
 
     public MatchContentViewModel()
     {

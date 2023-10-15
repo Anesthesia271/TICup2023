@@ -275,9 +275,7 @@ public class MatchManager
 
             LeftStep--;
             NewMsgProduced?.Invoke($"小车到达({IntPosX},{IntPosY})");
-            LastIntPosX = IntPosX;
-            LastIntPosY = IntPosY;
-
+            
             if (LeftStep < 0)
             {
                 NewMsgProduced?.Invoke("小车剩余步数用完");
@@ -349,6 +347,7 @@ public class MatchManager
 
         if (msg.Contains('1'))
         {
+            // TODO
             if (Map[IntPosX][IntPosY] != ' ')
             {
                 LastCommandIntPosX = IntPosX;
@@ -502,10 +501,12 @@ public class MatchManager
 
     private void StatusWaitConnMsg()
     {
-        if (Map[IntPosX][IntPosY] != ' ' || Map[LastIntPosX][LastIntPosY] == ' ') return;
+        if (LastIntPosX == IntPosX && LastIntPosY == IntPosY) return;
+        if (Map[LastIntPosX][LastIntPosY] == ' ') return;
         NewMsgProduced?.Invoke("小车经过了功能点但并未发送连接指令，扣除2分");
         _subScore += 2;
         Score = CalculateScore() - _subScore;
+        CurrentStatus = Status.Running;
     }
 
     private void StatusInit()
