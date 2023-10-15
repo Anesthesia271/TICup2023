@@ -347,7 +347,6 @@ public class MatchManager
 
         if (msg.Contains('1'))
         {
-            // TODO
             if (Map[IntPosX][IntPosY] != ' ')
             {
                 LastCommandIntPosX = IntPosX;
