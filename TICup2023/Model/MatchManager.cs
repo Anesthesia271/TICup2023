@@ -1,19 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using CommunityToolkit.Mvvm.Messaging;
 using HandyControl.Controls;
+using TICup2023.ViewModel;
 
 namespace TICup2023.Model;
-
-public delegate void NewMsgProduced(string msg);
-
-public delegate void SerialSendText(string msg);
 
 public struct Node
 {
     public int X;
     public int Y;
     public char Value;
+}
+
+public struct NodeWithTopology
+{
+    public int X;
+    public int Y;
+    public char Value;
+    public List<NodeWithTopology> ConnectedNodes;
 }
 
 public struct PosInt
@@ -38,6 +48,8 @@ public enum Status
     WaitMsg
 }
 
+// TODO: 重构
+// TODO: 重写分值计算逻辑
 public class MatchManager
 {
     private static readonly MatchManager Instance = new();
@@ -47,50 +59,50 @@ public class MatchManager
     private Status CurrentStatus { get; set; } = Status.Idle;
     private string _mapString = string.Empty;
     public List<Node> NodeList { get; } = new();
-    public char[][] Map { get; set; } = new char[8][];
+    private Dictionary<int, List<NodeWithTopology>> TopologyList { get; } = new();
+    private char[][] Map { get; set; } = new char[8][];
+    private bool[][] Connected { get; set; } = new bool[8][];
 
     public int[] MapSizeList { get; } = { 7, 8, 9, 10 };
-    public int MapSize { get; set; } = 8;
+    public int MapSize { get; set; } = 10;
     public int StartResendTime { get; set; } = 3000;
     public int NormalResendTime { get; set; } = 1000;
-    public int FailedTimes { get; set; } = 10;
+    public int MaxFailedTimes { get; set; } = 10;
 
     public bool IsMatchStarted { get; set; }
 
-    public float ErrorRange { get; set; } = 0.3f;
-    public int Score { get; private set; }
+    public float ErrorRange { get; set; } = 0.4f;
+    public float Score { get; private set; }
+
+    private float _subScore;
+
     public string Time { get; private set; } = "0:00.00";
-    public int LeftStep { get; private set; } = 40;
+    public int LeftStep { get; private set; } = 55;
 
     private readonly Stopwatch _stopwatch = new();
     private TimeSpan _lastTimeRecord;
-    private TimeSpan _lastPosUpdateRecord;
     private int _failedTimes;
 
-    private char _firstValue = ' ';
+    private PosInt _firstPos = new() { X = 0, Y = 0 };
     private string _currentResendMsg = string.Empty;
 
-    public float PosX { get; set; }
-    public float PosY { get; set; }
+    private float PosX { get; set; }
+    private float PosY { get; set; }
+    private int LastIntPosX { get; set; }
+    private int LastIntPosY { get; set; }
+    private int LastCommandIntPosX { get; set; }
+    private int LastCommandIntPosY { get; set; }
+    private int IntPosX { get; set; }
+    private int IntPosY { get; set; }
 
-    public int LastIntPosX { get; set; }
-    public int LastIntPosY { get; set; }
-
-    public int LastCommandIntPosX { get; set; }
-
-    public int LastCommandIntPosY { get; set; }
-
-    public int IntPosX { get; set; }
-    public int IntPosY { get; set; }
-
-    public NewMsgProduced? NewMsgProduced { get; set; }
+    public Action<string>? NewMsgProduced { get; set; }
 
     public static MatchManager GetInstance() => Instance;
 
     public bool InitMap(string mapString)
     {
         NodeList.Clear();
-        for (var i = 0; i < mapString.Length - 3; i += 4)
+        for (var i = 0; i < mapString.Length - 2; i += 4)
         {
             var node = new Node
             {
@@ -108,16 +120,33 @@ public class MatchManager
             NodeList.Add(node);
         }
 
+        TopologyList.Clear();
+        for (var i = 0; i < NodeList.Count; i++)
+        {
+            var node = new NodeWithTopology
+            {
+                X = NodeList[i].X,
+                Y = NodeList[i].Y,
+                Value = NodeList[i].Value,
+                ConnectedNodes = new List<NodeWithTopology>()
+            };
+            if (TopologyList.TryGetValue(GetScore(node.Value), out var value))
+            {
+                value.Add(node);
+            }
+            else
+            {
+                TopologyList.Add(GetScore(node.Value), new List<NodeWithTopology> { node });
+            }
+        }
+
         _mapString = mapString.Replace("\\n", "\n");
 
         Map = new char[MapSize][];
         for (var i = 0; i < MapSize; i++)
         {
             Map[i] = new char[MapSize];
-            for (var j = 0; j < MapSize; j++)
-            {
-                Map[i][j] = ' ';
-            }
+            Array.Fill(Map[i], ' ');
         }
 
         foreach (var node in NodeList)
@@ -125,15 +154,19 @@ public class MatchManager
             Map[node.X][node.Y] = node.Value;
         }
 
+        Connected = new bool[MapSize][];
+        for (var i = 0; i < MapSize; i++)
+        {
+            Connected[i] = new bool[MapSize];
+            Array.Fill(Connected[i], false);
+        }
+
         return true;
     }
 
-    public static int GetScore(char ch)
-    {
-        return ch is >= 'A' and <= 'Z' ? ch - 'A' + 1 : ch - 'a' + 1;
-    }
+    public static int GetScore(char ch) => ch is >= 'A' and <= 'Z' ? ch - 'A' + 1 : ch - 'a' + 1;
 
-    public void StartMatch()
+    public async void StartMatch()
     {
         if (!IsMapInitialized())
         {
@@ -141,11 +174,17 @@ public class MatchManager
             return;
         }
 
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            WeakReferenceMessenger.Default.Send(new MapMessage(_mapString));
+        });
+
         SerialManager.DataReceived -= SerialDataReceived;
         SerialManager.DataReceived += SerialDataReceived;
 
         Score = 0;
-        LeftStep = 40;
+        _subScore = 0;
+        LeftStep = 55;
         _failedTimes = 0;
         IntPosX = 0;
         IntPosY = 0;
@@ -153,14 +192,38 @@ public class MatchManager
         LastIntPosY = 0;
         LastCommandIntPosX = 0;
         LastCommandIntPosY = 0;
+
+        TopologyList.Clear();
+        for (var i = 0; i < NodeList.Count; i++)
+        {
+            var node = new NodeWithTopology
+            {
+                X = NodeList[i].X,
+                Y = NodeList[i].Y,
+                Value = NodeList[i].Value,
+                ConnectedNodes = new List<NodeWithTopology>()
+            };
+            if (TopologyList.TryGetValue(GetScore(node.Value), out var value))
+            {
+                value.Add(node);
+            }
+            else
+            {
+                TopologyList.Add(GetScore(node.Value), new List<NodeWithTopology> { node });
+            }
+        }
+
+        NewMsgProduced?.Invoke("尝试发送硬重置请求");
+        SerialManager.SendMsgAsync("R\n");
+        await Task.Run(() => Thread.Sleep(3000));
+
         IsMatchStarted = true;
         _lastTimeRecord = new TimeSpan();
-        _lastPosUpdateRecord = new TimeSpan();
         NewMsgProduced?.Invoke("clear");
         NewMsgProduced?.Invoke("比赛开始");
         _stopwatch.Start();
-
         SerialManager.SendMsgAsync(_mapString);
+        NewMsgProduced?.Invoke("第1次发送地图信息...");
         CurrentStatus = Status.Init;
         _lastTimeRecord = _stopwatch.Elapsed;
         _failedTimes = 0;
@@ -186,7 +249,9 @@ public class MatchManager
         PosX = x;
         PosY = MapSize - y - 1;
 
-        if (Math.Abs((int)Math.Round(PosX) - IntPosX) <= 1 && Math.Abs((int)Math.Round(PosY) - IntPosY) <= 1)
+        if (Math.Abs((int)Math.Round(PosX) - IntPosX) <= 1 && Math.Abs((int)Math.Round(PosY) - IntPosY) <= 1 &&
+            (PosX - Math.Floor(PosX) < ErrorRange || PosX - Math.Floor(PosX) > 1 - ErrorRange) &&
+            (PosY - Math.Floor(PosY) < ErrorRange || PosY - Math.Floor(PosY) > 1 - ErrorRange))
         {
             LastIntPosX = IntPosX;
             LastIntPosY = IntPosY;
@@ -196,44 +261,37 @@ public class MatchManager
 
         if (IntPosX != LastIntPosX || IntPosY != LastIntPosY)
         {
-            if (_stopwatch.Elapsed - _lastPosUpdateRecord < TimeSpan.FromMilliseconds(100))
+            if (IntPosX < 0 || IntPosX >= MapSize || IntPosY < 0 || IntPosY >= MapSize)
             {
-                IntPosX = LastIntPosX;
-                IntPosY = LastIntPosY;
-            }
-            else
-            {
-                if (IntPosX < 0 || IntPosX >= MapSize || IntPosY < 0 || IntPosY >= MapSize)
-                {
-                    NewMsgProduced?.Invoke($"小车位置 ({IntPosX}, {IntPosY})");
-                    NewMsgProduced?.Invoke("小车离开了网格区域");
-                    SerialManager.SendMsgAsync("S\n");
-                    NewMsgProduced?.Invoke("""第1次发送"S\n"指令...""");
-                    CurrentStatus = Status.WaitMsg;
-                    _currentResendMsg = "S\n";
-                    _lastTimeRecord = _stopwatch.Elapsed;
-                    _failedTimes = 0;
-                    StopMatch();
-                    return;
-                }
-
-                LeftStep--;
-                NewMsgProduced?.Invoke($"小车到达({IntPosX},{IntPosY})");
-                if (LeftStep < 0)
-                {
-                    NewMsgProduced?.Invoke("小车剩余步数用完");
-                    SerialManager.SendMsgAsync("E\n");
-                    NewMsgProduced?.Invoke("""第1次发送"E\n"指令...""");
-                    CurrentStatus = Status.WaitMsg;
-                    _currentResendMsg = "E\n";
-                    _lastTimeRecord = _stopwatch.Elapsed;
-                    _failedTimes = 0;
-                    StopMatch();
-                    return;
-                }
+                NewMsgProduced?.Invoke($"小车位置 ({IntPosX}, {IntPosY})");
+                NewMsgProduced?.Invoke("小车离开了网格区域");
+                SerialManager.SendMsgAsync("S\n");
+                NewMsgProduced?.Invoke("""第1次发送"S\n"指令...""");
+                CurrentStatus = Status.WaitMsg;
+                _currentResendMsg = "S\n";
+                _lastTimeRecord = _stopwatch.Elapsed;
+                _failedTimes = 0;
+                StopMatch();
+                return;
             }
 
-            _lastPosUpdateRecord = _stopwatch.Elapsed;
+            LeftStep--;
+            NewMsgProduced?.Invoke($"小车到达({IntPosX},{IntPosY})");
+            LastIntPosX = IntPosX;
+            LastIntPosY = IntPosY;
+
+            if (LeftStep < 0)
+            {
+                NewMsgProduced?.Invoke("小车剩余步数用完");
+                SerialManager.SendMsgAsync("E\n");
+                NewMsgProduced?.Invoke("""第1次发送"E\n"指令...""");
+                CurrentStatus = Status.WaitMsg;
+                _currentResendMsg = "E\n";
+                _lastTimeRecord = _stopwatch.Elapsed;
+                _failedTimes = 0;
+                StopMatch();
+                return;
+            }
         }
 
         if (Math.Abs(PosX - IntPosX) > ErrorRange && Math.Abs(PosY - IntPosY) > ErrorRange)
@@ -283,6 +341,7 @@ public class MatchManager
 
     private void SerialDataReceived(string msg)
     {
+        if (!IsMatchStarted) return;
         if (msg.Contains('B'))
         {
             if (CurrentStatus != Status.Init) return;
@@ -292,7 +351,7 @@ public class MatchManager
 
         if (msg.Contains('1'))
         {
-            if (Map[IntPosX][IntPosY] != ' ' && CurrentStatus == Status.WaitConnMsg)
+            if (Map[IntPosX][IntPosY] != ' ')
             {
                 LastCommandIntPosX = IntPosX;
                 LastCommandIntPosY = IntPosY;
@@ -303,7 +362,8 @@ public class MatchManager
                 _lastTimeRecord = _stopwatch.Elapsed;
                 _failedTimes = 0;
 
-                _firstValue = Map[IntPosX][IntPosY];
+                _firstPos.X = IntPosX;
+                _firstPos.Y = IntPosY;
             }
             else
             {
@@ -319,7 +379,9 @@ public class MatchManager
 
         if (msg.Contains('2'))
         {
-            if (Math.Abs(_firstValue - Map[IntPosX][IntPosY]) == 32 && CurrentStatus == Status.WaitConnMsg)
+            if (Math.Abs(Map[_firstPos.X][_firstPos.Y] - Map[IntPosX][IntPosY]) is 0 or 32 &&
+                (_firstPos.X != IntPosX || _firstPos.Y != IntPosY) &&
+                CurrentStatus == Status.WaitConnMsg)
             {
                 LastCommandIntPosX = IntPosX;
                 LastCommandIntPosY = IntPosY;
@@ -354,7 +416,7 @@ public class MatchManager
             NewMsgProduced?.Invoke("收到小车回复");
             if (_currentResendMsg == "A\n")
             {
-                if (_firstValue == Map[IntPosX][IntPosY])
+                if (_firstPos.X == IntPosX && _firstPos.Y == IntPosY)
                 {
                     NewMsgProduced?.Invoke("小车连接1成功");
                     CurrentStatus = Status.WaitAnother;
@@ -362,7 +424,33 @@ public class MatchManager
                 else
                 {
                     NewMsgProduced?.Invoke("小车连接2成功");
-                    Score += GetScore(Map[IntPosX][IntPosY]);
+
+                    var firstNodeWithTopology = TopologyList[GetScore(Map[_firstPos.X][_firstPos.Y])]
+                        .Find(node => node.X == _firstPos.X && node.Y == _firstPos.Y);
+
+                    var nodeWithTopology = TopologyList[GetScore(Map[IntPosX][IntPosY])]
+                        .Find(node => node.X == IntPosX && node.Y == IntPosY);
+
+                    if (firstNodeWithTopology.X != nodeWithTopology.X || firstNodeWithTopology.Y != nodeWithTopology.Y)
+                    {
+                        if (!firstNodeWithTopology.ConnectedNodes.Contains(nodeWithTopology))
+                        {
+                            firstNodeWithTopology.ConnectedNodes.Add(nodeWithTopology);
+                        }
+
+                        if (!nodeWithTopology.ConnectedNodes.Contains(firstNodeWithTopology))
+                        {
+                            nodeWithTopology.ConnectedNodes.Add(firstNodeWithTopology);
+                        }
+                    }
+
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        WeakReferenceMessenger.Default.Send(new NewLineMessage(_firstPos.X, _firstPos.Y, IntPosX,
+                            IntPosY, GetScore(Map[_firstPos.X][_firstPos.Y])));
+                    });
+
+                    Score = CalculateScore() - _subScore;
                     CurrentStatus = Status.Running;
                 }
             }
@@ -390,26 +478,48 @@ public class MatchManager
         }
     }
 
+    private float CalculateScore() => TopologyList.Sum(item => (
+        from node in item.Value
+        where node.ConnectedNodes.Count != 0 && node.Value is >= 'a' and <= 'z'
+        select CalculateScoreHelper(node)
+        into connectedPower
+        where connectedPower != 0
+        select (float)(item.Key * Math.Pow(1.2, connectedPower - 1))).Sum());
+
+    private static int CalculateScoreHelper(NodeWithTopology node)
+    {
+        var visitedNodes = new HashSet<NodeWithTopology>();
+        return CalculateScoreDfs(node, visitedNodes);
+    }
+
+    private static int CalculateScoreDfs(NodeWithTopology node, ISet<NodeWithTopology> visitedNodes)
+    {
+        visitedNodes.Add(node);
+        return (node.Value is >= 'A' and <= 'Z' ? 1 : 0) + node.ConnectedNodes
+            .Where(connectedNode => !visitedNodes.Contains(connectedNode))
+            .Sum(connectedNode => CalculateScoreDfs(connectedNode, visitedNodes));
+    }
+
     private bool IsMapInitialized() => NodeList.Count != 0;
 
     private void StatusWaitConnMsg()
     {
-        if (Map[IntPosX][IntPosY] == ' ' && Map[LastIntPosX][LastIntPosY] != ' ')
-        {
-            NewMsgProduced?.Invoke($"小车经过了功能点但并未发送连接指令，扣除2分");
-            Score -= 2;
-        }
+        if (Map[IntPosX][IntPosY] != ' ' || Map[LastIntPosX][LastIntPosY] == ' ') return;
+        NewMsgProduced?.Invoke("小车经过了功能点但并未发送连接指令，扣除2分");
+        _subScore += 2;
+        Score = CalculateScore() - _subScore;
     }
 
     private void StatusInit()
     {
         if (_stopwatch.Elapsed - _lastTimeRecord > TimeSpan.FromMilliseconds(StartResendTime))
         {
-            if (_failedTimes >= FailedTimes)
+            if (_failedTimes >= MaxFailedTimes)
             {
-                NewMsgProduced?.Invoke($"第{_failedTimes}次发送地图信息失败");
+                NewMsgProduced?.Invoke($"第{_failedTimes + 1}次发送地图信息失败");
                 StopMatch();
             }
+
             SerialManager.SendMsgAsync(_mapString);
             _lastTimeRecord = _stopwatch.Elapsed;
             _failedTimes++;
@@ -444,9 +554,9 @@ public class MatchManager
     {
         if (_stopwatch.Elapsed - _lastTimeRecord > TimeSpan.FromMilliseconds(NormalResendTime))
         {
-            if (_failedTimes >= FailedTimes)
+            if (_failedTimes >= MaxFailedTimes)
             {
-                NewMsgProduced?.Invoke($"第{_failedTimes}次发送\"{_currentResendMsg.Replace("\n", @"\n")}\"指令失败，比赛中止");
+                NewMsgProduced?.Invoke($"第{_failedTimes + 1}次发送\"{_currentResendMsg.Replace("\n", @"\n")}\"指令失败，比赛中止");
                 SerialManager.SendMsgAsync("S\n");
                 StopMatch();
             }
@@ -454,7 +564,7 @@ public class MatchManager
             SerialManager.SendMsgAsync(_currentResendMsg);
             _lastTimeRecord = _stopwatch.Elapsed;
             _failedTimes++;
-            NewMsgProduced?.Invoke($"第{_failedTimes}次发送\"{_currentResendMsg.Replace("\n", @"\n")}\"指令...");
+            NewMsgProduced?.Invoke($"第{_failedTimes + 1}次发送\"{_currentResendMsg.Replace("\n", @"\n")}\"指令...");
         }
     }
 }

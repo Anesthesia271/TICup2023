@@ -46,12 +46,12 @@
                   Stretch="Uniform" />
             <StackPanel VerticalAlignment="Center" Orientation="Vertical">
                 <StackPanel Margin="10,5" Orientation="Horizontal">
-                    <TextBlock Width="70" FontSize="14"
+                    <TextBlock Width="55" FontSize="14"
                                Foreground="{DynamicResource PrimaryTextBrush}"
                                Text="得分:" />
                     <TextBlock Margin="0,1,0,0" FontSize="14"
                                Foreground="{DynamicResource PrimaryTextBrush}"
-                               Text="{Binding MatchManager.Score}" />
+                               Text="{Binding MatchManager.Score, StringFormat=N3}" />
                 </StackPanel>
                 <StackPanel Margin="10,5" Orientation="Horizontal">
                     <TextBlock Width="70" FontSize="14"

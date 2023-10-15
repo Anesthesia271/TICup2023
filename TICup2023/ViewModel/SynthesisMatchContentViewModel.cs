@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -10,9 +12,11 @@ using TICup2023.Model;
 
 namespace TICup2023.ViewModel;
 
-public record LogMessage;
+public record ChangeSizeMessage;
 
 public record MapMessage(string MapString);
+
+public record NewLineMessage(int X1, int Y1, int X2, int Y2, int Score);
 
 public partial class SynthesisMatchContentViewModel : ObservableObject
 {
@@ -24,6 +28,8 @@ public partial class SynthesisMatchContentViewModel : ObservableObject
     [ObservableProperty] private Canvas _foregroundCanvas = new();
 
     [ObservableProperty] private string _matchInfo = string.Empty;
+    
+    private Dictionary<int, int> _colorIndexDict = new();
 
     private readonly Path _playerPath;
 
@@ -48,14 +54,14 @@ public partial class SynthesisMatchContentViewModel : ObservableObject
     {
         _playerPath = new Path
         {
-            Height = 60,
+            Height = 50,
             Stretch = Stretch.Uniform,
             Data = Application.Current.FindResource("PlayerGeometry") as Geometry
         };
         _playerPath.SetResourceReference(Shape.FillProperty, "PrimaryBrush");
         Panel.SetZIndex(_playerPath, 100);
 
-        WeakReferenceMessenger.Default.Register<LogMessage>(this, (_, _) => RePaintCanvas());
+        WeakReferenceMessenger.Default.Register<ChangeSizeMessage>(this, (_, _) => RePaintCanvas());
         WeakReferenceMessenger.Default.Register<MapMessage>(this, (_, message) => InitMap(message.MapString));
 
         CameraManager.FrameUpdated += () =>
@@ -67,6 +73,20 @@ public partial class SynthesisMatchContentViewModel : ObservableObject
         };
 
         MatchManager.NewMsgProduced += NewMessage;
+        
+        WeakReferenceMessenger.Default.Register<NewLineMessage>(this, (_, message) =>
+        {
+            var line = new Line
+            {
+                X1 = message.X1 * 100 + 50,
+                Y1 = (MatchManager.MapSize - message.Y1 - 1) * 100 + 20,
+                X2 = message.X2 * 100 + 50,
+                Y2 = (MatchManager.MapSize - message.Y2 - 1) * 100 + 20,
+                StrokeThickness = 3
+            };
+            line.Stroke = _brushes[_colorIndexDict[message.Score]];
+            ForegroundCanvas.Children.Add(line);
+        });
 
         RePaintCanvas();
     }
@@ -105,8 +125,8 @@ public partial class SynthesisMatchContentViewModel : ObservableObject
         ForegroundCanvas.Width = MatchManager.MapSize * 100;
 
         ForegroundCanvas.Children.Add(_playerPath);
-        _playerPath.SetValue(Canvas.LeftProperty, (double)33);
-        _playerPath.SetValue(Canvas.TopProperty, (double)MatchManager.MapSize * 100 - 100);
+        _playerPath.SetValue(Canvas.LeftProperty, (double)36);
+        _playerPath.SetValue(Canvas.TopProperty, (double)MatchManager.MapSize * 100 - 97);
     }
 
     private void InitMap(string mapString)
@@ -119,20 +139,30 @@ public partial class SynthesisMatchContentViewModel : ObservableObject
 
         RePaintCanvas();
 
+        _colorIndexDict = new Dictionary<int, int>();
+
+        var colorIndex = 0;
+        var lastScore = 0;
+
         foreach (var node in MatchManager.NodeList)
         {
+            if (MatchManager.GetScore(node.Value) != lastScore)
+            {
+                colorIndex = colorIndex == 12 ? 0 : colorIndex + 1;
+            }
+
             if (node.Value is >= 'a' and <= 'z')
             {
                 var path = new Path
                 {
                     Height = 55,
                     Stretch = Stretch.Uniform,
-                    Fill = _brushes[MatchManager.GetScore(node.Value)],
+                    Fill = _brushes[colorIndex],
                     Data = Application.Current.FindResource("TowerGeometry") as Geometry
                 };
                 ForegroundCanvas.Children.Add(path);
                 path.SetValue(Canvas.LeftProperty, (double)node.X * 100 + 25);
-                path.SetValue(Canvas.TopProperty, (double)(MatchManager.MapSize - node.Y - 1) * 100 + 15);
+                path.SetValue(Canvas.TopProperty, (double)(MatchManager.MapSize - node.Y - 1) * 100);
             }
             else
             {
@@ -140,13 +170,20 @@ public partial class SynthesisMatchContentViewModel : ObservableObject
                 {
                     Height = 55,
                     Stretch = Stretch.Uniform,
-                    Fill = _brushes[MatchManager.GetScore(node.Value)],
+                    Fill = _brushes[colorIndex],
                     Data = Application.Current.FindResource("PowerStationGeometry") as Geometry
                 };
                 ForegroundCanvas.Children.Add(path);
                 path.SetValue(Canvas.LeftProperty, (double)node.X * 100 + 25);
-                path.SetValue(Canvas.TopProperty, (double)(MatchManager.MapSize - node.Y - 1) * 100 + 15);
+                path.SetValue(Canvas.TopProperty, (double)(MatchManager.MapSize - node.Y - 1) * 100);
             }
+
+            if (!_colorIndexDict.ContainsKey(MatchManager.GetScore(node.Value)))
+            {
+                _colorIndexDict.Add(MatchManager.GetScore(node.Value), colorIndex);
+            }
+
+            lastScore = MatchManager.GetScore(node.Value);
         }
 
         Growl.Success("地图初始化成功！");
@@ -155,14 +192,13 @@ public partial class SynthesisMatchContentViewModel : ObservableObject
     private void NewMessage(string msg)
     {
         OnPropertyChanged(nameof(MatchManager));
-        switch (msg)
+        if (msg == string.Empty) return;
+        if (msg == "clear")
         {
-            case "":
-                return;
-            case "clear":
-                MatchInfo = string.Empty;
-                return;
+            MatchInfo = string.Empty;
+            return;
         }
+
         if (MatchInfo == string.Empty)
             MatchInfo += $"{DateTime.Now:MM/dd HH:mm:ss} {msg}";
         else
