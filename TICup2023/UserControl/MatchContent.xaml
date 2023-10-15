@@ -60,7 +60,7 @@
                                           hc:TitleElement.TitlePlacement="Left" hc:TitleElement.TitleWidth="85"
                                           IsEnabled="{Binding MatchManager.IsMatchStarted, Converter={StaticResource Boolean2BooleanReConverter}}"
                                           Style="{StaticResource NumericUpDownExtend}"
-                                          Value="{Binding MatchManager.FailedTimes}" />
+                                          Value="{Binding MatchManager.MaxFailedTimes}" />
                     </StackPanel>
                 </Border>
             </Expander>
